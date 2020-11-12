@@ -74,4 +74,4 @@ fabric.properties
 # Build
 target/
 
-#src/main/webapp/index.html
+src/main/webapp/index.html
