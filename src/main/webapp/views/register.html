@@ -1,0 +1,16 @@
+<div class="flex-container">
+    <h1>NotATrelloCopy - Register</h1>
+    <form ng-submit="register(data)" ng-controller="LoginRegisterController" method="POST" validation>
+        <input ng-model="data.email" type="text" name="email" id="email" placeholder="Email" required>
+        <input ng-model="data.password" type="password" name="password" id="password" placeholder="Password" required>
+        <input ng-model="passwordConfirm" type="password" ng-keyup="checkPass(data)" name="password-confirm" id="password-confirm" placeholder="Confirm Password" required>
+        <p>
+            <label>
+                By clicking submit you accept the <a href="tos">Terms Of Service</a>
+                <!-- <input type="checkbox" name="tos" id="check-tos" checked disabled required> -->
+            </label>
+        </p>
+        <input type="submit" id="submit" value="Register" disabled>
+        <!-- <p ng-bind-html="registerSuccess"></p> -->
+    </form>
+</div>
