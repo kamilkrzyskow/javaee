@@ -1,29 +1,64 @@
 <div>
-    Dashboard success
+    <!-- Dashboard success
     <button ng-click="test()">Test</button>
-    <p>{{currentUser}}</p>
     <p>
         <ul ng-repeat="user in users">
             <li>{{user.id}} - {{user.email}}</li>
         </ul>
-    </p>
-    <!-- The dnd-list directive allows to drop elements into it.
-     The dropped data will be added to the referenced list -->
-    <div class="simpleDemo">
-        <ul dnd-list="list">
-            <!-- The dnd-draggable directive makes an element draggable and will
-                transfer the object that was assigned to it. If an element was
-                dragged away, you have to remove it from the original list
-                yourself using the dnd-moved attribute -->
-            <li ng-repeat="item in list"
-                dnd-draggable="item"
-                dnd-moved="list.splice($index, 1)"
-                dnd-effect-allowed="move"
-                dnd-selected="models.selected = item"
-                ng-class="{'selected': models.selected === item}"
-                >
-                {{item.label}}
-            </li>
-        </ul>
+    </p> -->
+    <div class="container">
+        <div class="row row-cols-1 row-cols-md-4">
+            <div class="col mb-1">
+                <div type="button" class="btn cus-bg-grad-green card h-100" data-toggle="modal" data-target="#addProject">
+                    <div class="card-body align-items-center d-flex justify-content-center">
+                        <img src="bootstrap-icons/plus-circle.svg" alt="Add project button" width="64" height="64" title="Add project">  
+                    </div>
+                </div>
+            </div>
+            <div class="col mb-1" ng-repeat="project in prr">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{project.name}}</h5>
+                        <p class="card-text">{{project.desc}}</p>
+                        <a href="project/{{project.id}}" class="card-link">Open Project</a>    
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">Last updated 3 mins ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addProject" tabindex="-1" aria-labelledby="addProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProjectLabel">New message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form name="addProjectForm">
+                <div class="form-group">
+                    <label for="project-id" class="col-form-label">Project ID:</label>
+                    <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="project-name" class="col-form-label">Project Name:</label>
+                    <input ng-model="data.name" type="text" class="form-control" id="project-name" required>
+                    </div>
+                <div class="form-group">
+                    <label for="project-desc" class="col-form-label">Project Description:</label>
+                    <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button ng-click="addProjectForm.$valid && addProject(data)" type="button" data-dismiss="modal" class="btn btn-primary">Create Project</button>
+            </div>
+            </div>
+        </div>
     </div>
 </div>

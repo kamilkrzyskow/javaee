@@ -1,17 +1,18 @@
-body{
+body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     background: #F5F7F4;
     font-size: 1.25rem;
     color: #1D131D;
+    padding-top: 100px;
 }
 
-h1,h2,h3{
+h1, h2, h3 {
     margin: 0;
 }
 
 a {
-    text-decoration: none;
+    text-decoration: none !important;
 }
 
 #flex-container-home {
@@ -46,68 +47,9 @@ button, input[type="submit"] {
     font-size: 2rem;
 }
 
-button:hover, input[type="submit"]:hover {
-    filter: invert(5%);
+.space {
+    height: 100px;
 }
-
-button {
-    /* width: 80%; */
-    /* padding: 10px 5%; */
-    border-radius: 10px;
-    border: 2px solid rgb(68, 68, 68);
-    /* margin: 10px 0; */
-}
-
-
-
-
-
-/* Navigation Bar */
-
-#nav-bar{
-    background: #19AD09;
-    padding: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
-
-#nav-bar h1{
-    /* font-size: 24px; */
-    font-weight: normal;
-    display: inline-block;
-}
-
-#nav-bar ul{
-    float: right;
-    list-style-type: none;
-    padding: 0;
-    margin: -5px 0;
-}
-
-#nav-bar li{
-    float: right;
-    margin-left: 20px;
-}
-
-#nav-bar a{
-    color: #fff
-}
-
-
-
-
-/* Main Site */
-
-
-
-/* Register and Login */
-
-/* #form {
-    text-align: center;
-    background: #eee;
-    max-width: 50vw;
-    margin: 30px auto;
-    border-radius: 10px;
-} */
 
 input{
     width: 80%;
@@ -117,52 +59,10 @@ input{
     margin: 10px 0;
 }
 
-.dropdown {
-    float: right;
-    overflow: hidden;
-  }
-  
-  .dropdown .dropbtn {
-    font-size: 16px;  
-    border: none;
-    outline: none;
-    /* color: white; */
-    padding: 14px 16px;
-    background-color: inherit;
-    font-family: inherit;
-    margin: 0;
-  }
-  
-  .navbar a:hover, .dropdown:hover .dropbtn {
-    background-color: red;
-  }
-  
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #19AD09;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-    right: 10px;
-  }
-  
-  .dropdown-content a {
-    float: none;
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-  }
-  
-  .dropdown-content a:hover {
-    background-color:#1D131D;
-  }
-  
-  .dropdown:hover .dropdown-content {
-    display: block;
-  }
+.dropdown-menu {
+    right: 0;
+    left: auto !important;
+}
 
 
 

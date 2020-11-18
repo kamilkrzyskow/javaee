@@ -1,0 +1,20 @@
+.cus-bg-white {
+    background: #F5F7F4;
+}
+
+.cus-bg-grad-green:hover {
+    background: rgb(103,255,110);
+    background: radial-gradient(circle, rgba(103,255,110,1) 0%, rgba(0,255,16,0) 50%); 
+}
+
+.cus-min-vh-80 {
+    min-height: 80vh;
+}
+
+.cus-color-green {
+    color: rgb(103,255,110) !important;
+}
+
+.cus-bg-green {
+    background: rgb(103,255,110) !important;
+}
