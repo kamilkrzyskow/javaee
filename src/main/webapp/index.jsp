@@ -8,8 +8,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="pl" ng-app="AppManager" ng-controller="SiteController">
-<<<<<<< HEAD
-<<<<<<< HEAD:src/main/webapp/index.jsp
   <head>
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28,19 +26,12 @@
     <header ng-include="'userHeader.html'" ng-if="loggedIn"></header>
     <main ng-view></main>
   </body>
-=======
-=======
->>>>>>> bootstrap2
     <head>
         <base href="/">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta charset="UTF-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-<<<<<<< HEAD
-        <title>Local - NotATrelloCopy</title>
-=======
         <title>Heroku - NotATrelloCopy</title>
->>>>>>> bootstrap2
         <!-- SCRIPTS -->
         <script src="js/lib/angular.min.js"></script>
         <script src="js/lib/angular-route.min.js"></script>
@@ -79,8 +70,4 @@
             </div>
           </div>
     </body>
-<<<<<<< HEAD
->>>>>>> bootstrap:src/main/webapp/index.html
-=======
->>>>>>> bootstrap2
 </html>
