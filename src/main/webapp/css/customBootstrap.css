@@ -4,7 +4,11 @@
 
 .cus-bg-grad-green:hover {
     background: rgb(103,255,110);
-    background: radial-gradient(circle, rgba(103,255,110,1) 0%, rgba(0,255,16,0) 50%); 
+    background: radial-gradient(circle, rgba(103,255,110,1) 0%, rgba(0,255,16,1) 20%, rgba(255,255,255,1) 51%); 
+}
+
+.cus-color-green-hover:hover {
+    color: rgb(103,255,110) !important;
 }
 
 .cus-min-vh-80 {
@@ -17,4 +21,8 @@
 
 .cus-bg-green {
     background: rgb(103,255,110) !important;
+}
+
+.cus-bri-25 {
+    filter: brightness(0.25);
 }
