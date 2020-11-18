@@ -1,11 +1,9 @@
-<div class="flex-container">
+<div class="d-flex flex-column align-items-center text-center cus-min-vh-80">
     <h1>NotATrelloCopy - Login</h1>
-    <form ng-submit="login(data)" ng-controller="LoginRegisterController" method="post">
-        <input ng-model="data.email" type="text" name="email" id="email" placeholder="Email" required>
-        <input ng-model="data.password" type="password" name="pass" id="password" placeholder="Password" required>
-        <input type="submit" id="submit" value="Login">
-        <p>
-            <a href="forgot-pass"><button>Forgot your password?</button></a>
-        </p>
+    <form name="loginForm" ng-submit="loginForm.$valid && login(data)" ng-controller="LoginRegisterController" method="post">
+        <input ng-model="data.email" class="form-control" type="text" name="email" id="email" placeholder="Email" required>
+        <input ng-model="data.password" class="form-control" type="password" name="pass" id="password" placeholder="Password" required>
+        <input type="submit" id="submit" value="Login" class="btn btn-primary">
+        <a href="forgot-pass" class="p-2">Forgot your password?</a>
     </form>   
 </div>  
