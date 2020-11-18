@@ -1,6 +1,6 @@
 <div class="d-flex flex-column align-items-center text-center cus-min-vh-80">
     <h1>NotATrelloCopy - Register</h1>
-    <form name="registerForm" ng-submit="registerForm.$valid && register(data)" ng-controller="LoginRegisterController" method="POST" validation>
+    <form name="registerForm" ng-submit="registerForm.$valid && register(data)" ng-controller="LoginRegisterController" method="POST">
         <input ng-model="data.email" class="form-control" type="email" name="email" id="email" placeholder="Email" required>
         <input ng-model="data.password" class="form-control" type="password" name="password" id="password" placeholder="Password" required>
         <input ng-model="passwordConfirm" class="form-control" type="password" ng-keyup="checkPass(data)" name="password-confirm" id="password-confirm" placeholder="Confirm Password" required>
@@ -8,6 +8,6 @@
             <input type="checkbox" class="custom-control-input" id="check-tos" required>
             <label class="custom-control-label" for="check-tos">Accept the <a href="tos">Terms Of Service</a></label>
         </div>
-        <input type="submit" id="submit" class="btn btn-primary" value="Register" disabled>
+        <input type="submit" id="submit" class="btn btn-primary form-control" value="Register" disabled>
     </form>
 </div>
