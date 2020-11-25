@@ -3,14 +3,14 @@ let AppManager = angular.module('AppManager', ["ngRoute", "dndLists"]);
 AppManager.factory('userService', function() {
     let userData = {
         id: undefined,
-        token: undefined,
         email: undefined,
         projects: undefined
     };
+    let token = undefined;
     let loggedIn = false;
     return {
         getAuthorization: function() {
-            return userData.token;
+            return token;
         },
         getUserId: function() {
             return userData.id;
@@ -24,8 +24,11 @@ AppManager.factory('userService', function() {
         getUser: function() {
             return userData;
         },
-        setAuthorization: function(token) {
-            userData.token = token;
+        setUser: function(data) {
+            userData = data;
+        },
+        setAuthorization: function(ltoken) {
+            token = ltoken;
         },
         setUserId: function(id) {
             userData.id = id;
@@ -62,7 +65,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
     $routeProvider
         .when("/", {
             resolveRedirectTo: ["userService", function(userService) {
-                if (userService.getAuthorization()) {
+                if (userService.isLoggedIn()) {
                     return "/dashboard";
                 } else {
                     return "/home";
@@ -96,7 +99,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
         })
         .when("/login", {
             resolveRedirectTo: ["userService", function(userService) {
-                if (userService.getAuthorization()) {
+                if (userService.isLoggedIn()) {
                     return "/dashboard";
                 } else {
                     return "/loginForm";
@@ -105,7 +108,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
         })
         .when("/register", {
             resolveRedirectTo: ["userService", function(userService) {
-                if (userService.getAuthorization()) {
+                if (userService.isLoggedIn()) {
                     return "/dashboard";
                 } else {
                     return "/registerForm";
@@ -132,7 +135,8 @@ AppManager.config(["$httpProvider", function($httpProvider) {
     $httpProvider.interceptors.push(function(userService) {
         return {
             request: function(request) {
-                request.headers.Authorization = userService.getAuthorization();
+                if (userService.getAuthorization())
+                    request.headers.Authorization = userService.getAuthorization();
                 request.headers.Accept = '*/*';
                 return request; 
             },
@@ -140,7 +144,7 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                 if (response.status == 200) {
                     if (response.data.token)
                         userService.setAuthorization(response.data.token);
-                    if (response.data.id)
+                    if (response.data.id && (userService.getUserId() === undefined))
                         userService.setUserId(response.data.id);
                     else if (response.data.userId)
                         userService.setUserId(response.data.userId);
@@ -169,7 +173,6 @@ AppManager.controller(
                     if (response.status == 200) {
                         userService.toggleLoggedIn();
                         $rootScope.$broadcast("toggleLoggedIn");
-                        $location.path("dashboard");
                     } else {
                         $location.path(response.status.toString());
                     }
@@ -209,7 +212,6 @@ AppManager.controller(
                 .then(function(response) {
                     if (response.status == 200) {
                         $scope.logout();
-                        // $scope.registerSuccess = $sce.trustAsHtml('Registration Successful. You can now <a href="login">login</a>');
                         $location.path("/");
                     } else {
                         $location.path(response.status.toString());
@@ -229,30 +231,31 @@ AppManager.controller(
 
 AppManager.controller(
     "DashboardController", 
-    ["$scope", "$http", "$location", "userService", 
+    ["$scope", "$http", "$location", "userService",
     function($scope, $http, $location, userService) {
 
-        // if (userService.getAuthorization() === undefined)
+        // if (userService.getAuthorization() === undefined) {
         //     $location.path("/");
+        //     return;
+        // }
+            
         $scope.users = {};
-        let projects = [
-            {
-                "id": 1,
-                "name": "Project 1",
-                "desc": "JAVAEE"
-            },
-            {
-                "id": 2,
-                "name": "Project 2",
-                "desc": "PG3D"
-            }
-        ]
-        userService.setUserProjects(projects);
-        $scope.prr = userService.getUserProjects();
+        $scope.edit = {};
+
         
+        // let projects = [
+        //     {
+        //         "project": {
+        //             "id": 1,
+        //             "name": "Project 1",
+        //         }
+        //     }
+        // ]
+        // userService.setUserProjects(projects);
+        $scope.prr = userService.getUserProjects();
         console.log(userService.getUser());
         console.log($scope.prr);
-
+        
         $scope.test = function() {
             $http.get("https://uz-kanban-backend.herokuapp.com/users")
                 .then(function(response) {
@@ -268,49 +271,111 @@ AppManager.controller(
         }
 
         $scope.addProject = function(data) {
-            $scope.prr.unshift(data);
+            userData = angular.copy(data);
+            $http.post("https://uz-kanban-backend.herokuapp.com/projects/" + userService.getUserId(), JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        let project = {};
+                        project.id = response.data.id;
+                        project.role = response.data.users[0].role;
+                        delete response.data.users;
+                        project.project = response.data;
+                        $scope.prr.push(project);
+                        userService.setUserProjects($scope.prr);
+                    } else {
+                        console.log(response);
+                        $location.path(response.status.toString());
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(response.status.toString());
+                });
             $scope.data = {};
+        }
+
+        $scope.deleteProject = function (edit) {
+            $http.delete("https://uz-kanban-backend.herokuapp.com/projects/" + edit.id)
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Project DELETED");
+                    $scope.prr.splice(edit.index, 1);
+                } else {
+                    console.log(response);
+                }
+            }, function(response){
+                console.log(response);
+            });
+        }
+
+        $scope.editProject = function(data, edit) {
+            userData = angular.copy(data);
+            $http.put("https://uz-kanban-backend.herokuapp.com/projects/" + edit.id, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        $scope.prr[edit.index].project.name = userData.name;
+                    } else {
+                        console.log(response);
+                        $location.path(response.status.toString());
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(response.status.toString());
+                });
+            $scope.data = {};
+            $scope.edit = {};
+        }
+
+        $scope.beginEdit = function(project) {
+            let currentProjectIndex = $scope.prr.indexOf(project);
+            $scope.edit.index = currentProjectIndex;
+            $scope.edit.id = project.project.id;
+            $scope.edit.name = project.project.name;
         }
 }]);
 
 AppManager.controller(
     "ProjectController", 
-    ["$scope",
-    function($scope) {
+    ["$scope", "userService", "$location", 
+    function($scope, userService, $location) {
 
-    $scope.models = {
-        selected: null,
-        lists: {
-            "A": [], 
-            "B": [],
-            "C": [],
-            "D": [],
-            "E": [],
-            "F": [],
-            "G": [],
-            "H": [],
-            "I": [],
-            "J": [],
-            "K": [],
+        if (userService.getAuthorization() === undefined) {
+            $location.path("/");
+            return;
         }
-    };
-    
-    // Generate initial model
-    for (var i = 1; i <= 3; ++i) {
-        $scope.models.lists.A.push({label: "Item A" + i});
-        $scope.models.lists.B.push({label: "Item B" + i});
-        $scope.models.lists.C.push({label: "Item C" + i});
-        $scope.models.lists.D.push({label: "Item D" + i});
-        $scope.models.lists.E.push({label: "Item E" + i});
-        $scope.models.lists.F.push({label: "Item F" + i});
-        $scope.models.lists.G.push({label: "Item G" + i});
-        $scope.models.lists.H.push({label: "Item H" + i});
-        $scope.models.lists.I.push({label: "Item I" + i});
-        $scope.models.lists.J.push({label: "Item J" + i});
-        $scope.models.lists.K.push({label: "Item K" + i});
-    }
 
-    console.log($scope.models.lists);
+        $scope.models = {
+            selected: null,
+            lists: {
+                "A": [], 
+                "B": [],
+                "C": [],
+                "D": [],
+                "E": [],
+                "F": [],
+                "G": [],
+                "H": [],
+                "I": [],
+                "J": [],
+                "K": [],
+            }
+        };
+        
+        // Generate initial model
+        for (var i = 1; i <= 3; ++i) {
+            $scope.models.lists.A.push({label: "Item A" + i});
+            $scope.models.lists.B.push({label: "Item B" + i});
+            $scope.models.lists.C.push({label: "Item C" + i});
+            $scope.models.lists.D.push({label: "Item D" + i});
+            $scope.models.lists.E.push({label: "Item E" + i});
+            $scope.models.lists.F.push({label: "Item F" + i});
+            $scope.models.lists.G.push({label: "Item G" + i});
+            $scope.models.lists.H.push({label: "Item H" + i});
+            $scope.models.lists.I.push({label: "Item I" + i});
+            $scope.models.lists.J.push({label: "Item J" + i});
+            $scope.models.lists.K.push({label: "Item K" + i});
+        }
+
+        console.log($scope.models.lists);
 
 }]);
 
@@ -321,16 +386,19 @@ AppManager.controller(
     
     $scope.loggedIn = userService.isLoggedIn();
 
-    $scope.setEmail = function() {
-        $http.get("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
+    $scope.setUser = function() {
+        return $http.get("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
             .then(function(response) {
                 if (response.status == 200) {
-                    userService.setUserEmail(response.data.email);
+                    userService.setUser(response.data);
+                    return response.status;
                 } else {
                     console.log(response);
+                    return response.status;
                 }
             }, function(response){
                 console.log(response);
+                return response.status;
             });
     }
 
@@ -353,8 +421,15 @@ AppManager.controller(
     
     $rootScope.$on('toggleLoggedIn', function () {
         $scope.loggedIn = userService.isLoggedIn();
-        if ($scope.loggedIn)
-            $scope.setEmail();
+        if ($scope.loggedIn) {
+            let r = $scope.setUser();
+            r.then(function(result){
+                if (result == 200) {
+                    $location.path("dashboard");
+                }
+            });
+        }
+            
     });
 }]);
 
