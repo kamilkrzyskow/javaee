@@ -142,6 +142,7 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                 if (userService.getAuthorization())
                     request.headers.Authorization = userService.getAuthorization();
                 request.headers.Accept = '*/*';
+                console.log(request);
                 return request; 
             },
             response: function(response) {
@@ -251,6 +252,7 @@ AppManager.controller(
         //     return;
         // }
         let context = undefined;
+        let userData = undefined;
         $scope.users = {};
         $scope.edit = {};
         $scope.curPrr = {};
@@ -331,6 +333,8 @@ AppManager.controller(
                 console.log(response);
                 $location.path(`error/${context}/${response.status}`);
             });
+            
+            $scope.edit = {};
         }
 
         $scope.editProject = function(data, edit) {
@@ -397,9 +401,10 @@ AppManager.controller(
             $scope.data = {};
         }
 
-        $scope.deleteMember = function (edit) {
+        $scope.deleteMember = function (data, edit) {
+            userData = angular.copy(data);
             context = "deleteMember";
-            $http.delete("https://uz-kanban-backend.herokuapp.com/projects/member", null, {
+            $http.delete("https://uz-kanban-backend.herokuapp.com/projects/member", {
                 params: {
                     "projectId": edit.id, 
                     "userEmail": userData.email
@@ -416,6 +421,8 @@ AppManager.controller(
                 console.log(response);
                 $location.path(`error/${context}/${response.status}`);
             });
+            
+            $scope.edit = {};
         }
         
 }]);

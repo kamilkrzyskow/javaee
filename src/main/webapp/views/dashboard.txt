@@ -250,7 +250,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button ng-click="deleteMemberProjectForm.$valid && deleteMember(edit)" type="button" data-dismiss="modal" class="btn btn-primary">Delete Member</button>
+                    <button ng-click="deleteMemberProjectForm.$valid && deleteMember(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Delete Member</button>
                 </div>
             </div>
         </div>
