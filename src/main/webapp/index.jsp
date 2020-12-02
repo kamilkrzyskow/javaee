@@ -30,7 +30,7 @@
     </head>
     <body>
         <header ng-include="'publicHeader.html'" ng-if="!loggedIn"></header>
-        <header ng-include="'userHeader.html'" ng-if="loggedIn"></header>
+        <header ng-include="'userHeader.txt'" ng-if="loggedIn"></header>
         <main ng-view></main>
         <div class="modal fade" id="deleteAccount" tabindex="-1" aria-labelledby="deleteAccountLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">

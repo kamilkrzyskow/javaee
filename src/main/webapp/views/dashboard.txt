@@ -1,0 +1,258 @@
+<div>
+    <!-- Dashboard success
+    <button ng-click="test()">Test</button>
+    <p>
+        <ul ng-repeat="user in users">
+            <li>{{user.id}} - {{user.email}}</li>
+        </ul>
+    </p> -->
+    <div class="container">
+        <div class="text-right mb-3">
+            <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#addProject">
+                New Project
+            </button>
+        </div>
+        <div class="row row-cols-1 row-cols-md-3">
+            <div class="col mb-1" ng-if="prr.length == 0">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">No projects to show</h5>
+                        <p class="card-text">You haven't created any projects yet. Press the 'New Project' button to create one.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col mb-1" ng-repeat="project in prr">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{project.project.name}}</h5>
+                        <!-- <p class="card-text">{{project.desc}}</p> -->
+                        <a href="project/{{project.project.id}}" class="btn btn-primary card-link">
+                            Open Project
+                        </a>
+                        <button ng-if="project.role == 'CREATOR'" class="btn btn-outline-primary" type="button" ng-click="beginEdit(project)" data-toggle="modal" data-target="#editProject">
+                            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <title>Edit Project</title>
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                            </svg>
+                        </button>
+                        <button ng-if="project.role == 'CREATOR'" class="btn btn-outline-primary" type="button" ng-click="beginEdit(project)" data-toggle="modal" data-target="#addMemberProject">
+                            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-person-plus-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <title>Add Member</title>
+                                <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.5-3a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+                            </svg>
+                        </button>
+                        <button ng-if="project.role == 'CREATOR'" class="btn btn-outline-primary" type="button" ng-click="beginEdit(project)" data-toggle="modal" data-target="#deleteMemberProject">
+                            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-person-dash-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <title>Delete Member</title>
+                                <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm5-.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                        </button>
+                        <button class="btn btn-outline-primary" type="button" ng-click="loadMembers(project.project.id)" data-toggle="modal" data-target="#listMembersProject">
+                            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-person-lines-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <title>List Members</title>
+                                <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7 1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm2 9a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                        </button> 
+                        <svg ng-if="project.role == 'CREATOR'" width="1em" height="1em" viewBox="0 0 16 16" class="cus-user-ic bi bi-person-badge-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <title>You are the CREATOR of this project</title>
+                            <path fill-rule="evenodd" d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm4.5 0a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm5 2.755C12.146 12.825 10.623 12 8 12s-4.146.826-5 1.755V14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-.245z"/>
+                        </svg>
+                        <svg ng-if="project.role == 'USER'" width="1em" height="1em" viewBox="0 0 16 16" class="cus-user-ic bi bi-person-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <title>You are a USER listMembers of this project</title>
+                            <path fill-rule="evenodd" d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        </svg>
+                    </div>
+                    
+                    <!-- <div class="card-footer">
+                        <small class="text-muted">Last updated 3 mins ago</small>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="static" id="addProject" tabindex="-1" aria-labelledby="addProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectLabel">Add Project</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="addProjectForm">
+                        <!-- <div class="form-group">
+                            <label for="project-id" class="col-form-label">Project ID:</label>
+                            <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                        </div> -->
+                        <div class="form-group">
+                            <label for="addProject-name" class="col-form-label">Project Name:</label>
+                            <input ng-model="data.name" type="text" class="form-control" id="addProject-name" required>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="project-desc" class="col-form-label">Project Description:</label>
+                            <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                        </div> -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button ng-click="addProjectForm.$valid && addProject(data)" type="button" data-dismiss="modal" class="btn btn-primary">Create Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="static" id="editProject" tabindex="-1" aria-labelledby="editProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProjectLabel">Edit Project</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="editProjectForm">
+                        <!-- <div class="form-group">
+                            <label for="project-id" class="col-form-label">Project ID:</label>
+                            <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                        </div> -->
+                        <div class="form-group">
+                            <label for="editProject-name" class="col-form-label">Project Name:</label>
+                            <input ng-model="data.name" type="text" class="form-control" id="editProject-name" placeholder="{{edit.name}}" required>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="project-desc" class="col-form-label">Project Description:</label>
+                            <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                        </div> -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click="deleteProject(edit)" type="button" class="btn btn-danger" data-dismiss="modal">Delete Project</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button ng-click="editProjectForm.$valid && editProject(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="static" id="listMembersProject" tabindex="-1" aria-labelledby="listMembersProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="listMembersProjectLabel">{{curPrr.name}} - Member List</h5>
+                    <button type="button" class="close" ng-click="curPrr = {}" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- <form name="listMembersProjectForm">
+                        <div class="form-group">
+                            <label for="project-id" class="col-form-label">Project ID:</label>
+                            <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="project-name" class="col-form-label">Project Name:</label>
+                            <input ng-model="data.name" type="text" class="form-control" id="project-name" placeholder="{{edit.name}}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="project-desc" class="col-form-label">Project Description:</label>
+                            <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                        </div>
+                    </form> -->
+                    <div ng-repeat="user in curPrr.users">
+                        {{user.user.email}} - {{user.role}}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" ng-click="curPrr = {}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <!-- <button ng-click="listMembersProjectForm.$valid && listMembersProject(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Save Changes</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="static" id="addMemberProject" tabindex="-1" aria-labelledby="addMemberProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberProjectLabel">Add Member to {{edit.name}}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="addMemberProjectForm">
+                        <!-- <div class="form-group">
+                            <label for="project-id" class="col-form-label">Project ID:</label>
+                            <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                        </div> -->
+                        <div class="form-group">
+                            <label for="addMember-email" class="col-form-label">Member Email</label>
+                            <input ng-model="data.email" type="email" class="form-control" id="addMember-email" placeholder="client@server.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addMember-select" class="col-form-label">Select role:</label>
+                            <select ng-model="data.select" id="addMember-select" name="addMember-select" class="form-control" required>
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="USER">USER</option>
+                            </select>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="project-desc" class="col-form-label">Project Description:</label>
+                            <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                        </div> -->
+                    </form>
+                    <div ng-repeat="user in curPrr.users">
+                        {{user.user.email}} - {{user.role}}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button ng-click="addMemberProjectForm.$valid && addMember(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Add Member</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="static" id="deleteMemberProject" tabindex="-1" aria-labelledby="deleteMemberProjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteMemberProjectLabel">Delete Member from {{edit.name}}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form name="deleteMemberProjectForm">
+                        <!-- <div class="form-group">
+                            <label for="project-id" class="col-form-label">Project ID:</label>
+                            <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                        </div> -->
+                        <div class="form-group">
+                            <label for="deleteMember-email" class="col-form-label">Member Email</label>
+                            <input ng-model="data.email" type="email" class="form-control" id="deleteMember-email" placeholder="client@server.com" required>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="deleteMember-select" class="col-form-label">Select role:</label>
+                            <select ng-model="data.select" id="deleteMember-select" name="deleteMember-select" class="form-control" required>
+                                <option disabled selected value> -- select an option -- </option>
+                                <option value="USER">USER</option>
+                            </select>
+                        </div> -->
+                        <!-- <div class="form-group">
+                            <label for="project-desc" class="col-form-label">Project Description:</label>
+                            <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
+                        </div> -->
+                    </form>
+                    <div ng-repeat="user in curPrr.users">
+                        {{user.user.email}} - {{user.role}}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button ng-click="deleteMemberProjectForm.$valid && deleteMember(edit)" type="button" data-dismiss="modal" class="btn btn-primary">Delete Member</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

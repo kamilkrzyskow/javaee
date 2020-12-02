@@ -75,7 +75,11 @@ AppManager.config(["$routeProvider", function($routeProvider) {
         .when("/home", {
             templateUrl: "views/home.html"
         })
-        .when("/project/:id*", {
+        .when("/error/:context/:code", {
+            templateUrl: "views/error.html",
+            controller: 'errorController'
+        })
+        .when("/project/:id", {
             templateUrl: "views/project.html",
             controller: 'ProjectController'
         })
@@ -119,11 +123,11 @@ AppManager.config(["$routeProvider", function($routeProvider) {
             templateUrl: "views/registerSuccess.html"
         })
         .when("/dashboard", {
-            templateUrl: "views/dashboard.html",
+            templateUrl: "views/dashboard.txt",
             controller: 'DashboardController'
         })
         .otherwise({
-            redirectTo: "/404"
+            redirectTo: "/error/route/404"
         });
 }]);
 
@@ -154,7 +158,8 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                         userService.setUserProjects(response.data.projects);
                 }
                 if (response.status == 403) {
-                    $location.path(response.status.toString());
+                    console.log(response);
+                    $location.path(`error/default/${response.status}`);
                 }
                 return response;
             }
@@ -166,35 +171,40 @@ AppManager.controller(
     'LoginRegisterController', 
     ["$rootScope", "$scope", "$http", "$location", "$sce", "userService",
     function($rootScope, $scope, $http, $location, $sce, userService) {
+        let context = undefined;
         $scope.login = function(data) {
             userData = angular.copy(data);
+            context = "login";
             $http.post("https://uz-kanban-backend.herokuapp.com/users/login", JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
                         userService.toggleLoggedIn();
                         $rootScope.$broadcast("toggleLoggedIn");
                     } else {
-                        $location.path(response.status.toString());
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/${context}/${response.status}`);
                 });
             $scope.data = {};
         };
         $scope.register = function(data) {
             userData = angular.copy(data);
+            context = "register";
             $http.post("https://uz-kanban-backend.herokuapp.com/users", JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
                         // $scope.registerSuccess = $sce.trustAsHtml('Registration Successful. You can now <a href="login">login</a>');
                         $location.path("registerSuccess");
                     } else {
-                        $location.path(response.status.toString());
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/${context}/${response.status}`);
                 });
             $scope.data = {};
         };
@@ -208,17 +218,19 @@ AppManager.controller(
         $scope.changePassword = function(data) {
             data.email = userService.getUserEmail();
             userData = angular.copy(data);
+            context = "changePassword";
             $http.put("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId(), JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
                         $scope.logout();
                         $location.path("/");
                     } else {
-                        $location.path(response.status.toString());
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/${context}/${response.status}`);
                 });
             $scope.data = {};
         };
@@ -238,17 +250,25 @@ AppManager.controller(
         //     $location.path("/");
         //     return;
         // }
-            
+        let context = undefined;
         $scope.users = {};
         $scope.edit = {};
-
+        $scope.curPrr = {};
         
         // let projects = [
         //     {
         //         "project": {
         //             "id": 1,
         //             "name": "Project 1",
-        //         }
+        //         },
+        //         "role": "CREATOR"
+        //     },
+        //     {
+        //         "project": {
+        //             "id": 2,
+        //             "name": "Project 2",
+        //         },
+        //         "role": "USER"
         //     }
         // ]
         // userService.setUserProjects(projects);
@@ -257,21 +277,24 @@ AppManager.controller(
         console.log($scope.prr);
         
         $scope.test = function() {
+            context = "test";
             $http.get("https://uz-kanban-backend.herokuapp.com/users")
                 .then(function(response) {
                     if (response.status == 200) {
                         $scope.users = response.data;
                     } else {
-                        $location.path(response.status.toString());
+                        console.log(response);
+                        $location.path(`error/default/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/default/${response.status}`);
                 });
         }
 
         $scope.addProject = function(data) {
             userData = angular.copy(data);
+            context = "addProject";
             $http.post("https://uz-kanban-backend.herokuapp.com/projects/" + userService.getUserId(), JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
@@ -284,16 +307,17 @@ AppManager.controller(
                         userService.setUserProjects($scope.prr);
                     } else {
                         console.log(response);
-                        $location.path(response.status.toString());
+                        $location.path(`error/${context}/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/${context}/${response.status}`);
                 });
             $scope.data = {};
         }
 
         $scope.deleteProject = function (edit) {
+            context = "deleteProject";
             $http.delete("https://uz-kanban-backend.herokuapp.com/projects/" + edit.id)
             .then(function(response) {
                 if (response.status == 204) {
@@ -301,25 +325,28 @@ AppManager.controller(
                     $scope.prr.splice(edit.index, 1);
                 } else {
                     console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
                 }
             }, function(response){
                 console.log(response);
+                $location.path(`error/${context}/${response.status}`);
             });
         }
 
         $scope.editProject = function(data, edit) {
             userData = angular.copy(data);
+            context = "editProject";
             $http.put("https://uz-kanban-backend.herokuapp.com/projects/" + edit.id, JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
                         $scope.prr[edit.index].project.name = userData.name;
                     } else {
                         console.log(response);
-                        $location.path(response.status.toString());
+                        $location.path(`error/${context}/${response.status}`);
                     }
                 }, function(response){
                     console.log(response);
-                    $location.path(response.status.toString());
+                    $location.path(`error/${context}/${response.status}`);
                 });
             $scope.data = {};
             $scope.edit = {};
@@ -331,32 +358,83 @@ AppManager.controller(
             $scope.edit.id = project.project.id;
             $scope.edit.name = project.project.name;
         }
+
+        $scope.loadMembers = function (id) {
+            $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + id)
+            .then(function(response) {
+                if (response.status == 200) {
+                    $scope.curPrr = response.data;
+                    console.log($scope.curPrr);
+                } else {
+                    console.log(response);
+                }
+            }, function(response){
+                console.log(response);
+            });
+        }
+
+        $scope.addMember = function(data, edit) {
+            userData = angular.copy(data);
+            context = "addMember";
+            $http.post("https://uz-kanban-backend.herokuapp.com/projects/member", null, {
+                params: {
+                    "projectId": edit.id, 
+                    "userEmail": userData.email, 
+                    "role": userData.select
+                }
+            })
+            .then(function(response) {
+                if (response.status == 200) {
+                    console.log(response);
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+            $scope.data = {};
+        }
+
+        $scope.deleteMember = function (edit) {
+            context = "deleteMember";
+            $http.delete("https://uz-kanban-backend.herokuapp.com/projects/member", null, {
+                params: {
+                    "projectId": edit.id, 
+                    "userEmail": userData.email
+                }
+            })
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Member DELETED");
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+        }
+        
 }]);
 
 AppManager.controller(
     "ProjectController", 
-    ["$scope", "userService", "$location", 
-    function($scope, userService, $location) {
+    ["$scope", "userService", "$location", "$routeParams",
+    function($scope, userService, $location, $routeParams) {
 
-        if (userService.getAuthorization() === undefined) {
-            $location.path("/");
-            return;
-        }
+        // if (userService.getAuthorization() === undefined) {
+        //     $location.path("/");
+        //     return;
+        // }
 
         $scope.models = {
             selected: null,
             lists: {
                 "A": [], 
-                "B": [],
-                "C": [],
-                "D": [],
-                "E": [],
-                "F": [],
-                "G": [],
-                "H": [],
-                "I": [],
-                "J": [],
-                "K": [],
+                "B": []
             }
         };
         
@@ -364,19 +442,54 @@ AppManager.controller(
         for (var i = 1; i <= 3; ++i) {
             $scope.models.lists.A.push({label: "Item A" + i});
             $scope.models.lists.B.push({label: "Item B" + i});
-            $scope.models.lists.C.push({label: "Item C" + i});
-            $scope.models.lists.D.push({label: "Item D" + i});
-            $scope.models.lists.E.push({label: "Item E" + i});
-            $scope.models.lists.F.push({label: "Item F" + i});
-            $scope.models.lists.G.push({label: "Item G" + i});
-            $scope.models.lists.H.push({label: "Item H" + i});
-            $scope.models.lists.I.push({label: "Item I" + i});
-            $scope.models.lists.J.push({label: "Item J" + i});
-            $scope.models.lists.K.push({label: "Item K" + i});
         }
 
         console.log($scope.models.lists);
+        console.log($routeParams.id);
+        console.log($location.path());
 
+}]);
+
+AppManager.controller(
+    "errorController", 
+    ["$scope", "$routeParams",
+    function($scope, $routeParams) {
+        
+        dict = {
+            "login": {
+                "404": "There is no such user in our database or the login servers are currently down",
+                "400": "The provided password was wrong"
+            },
+            "register": {
+                "404": "The registration servers are currently down",
+                "400": "The provided email is already in our database"
+            },
+            "route": {
+                "404": "This page does not exist"
+            },
+            "default": {
+                "403": "You are unauthorized to do this action",
+                "-1": "A connection with the backend server could not be established",
+                "500": "The backend server could not process your request",
+                "404": "The requested resource could was not found",
+                "default": "We don't know what happend"
+            }
+        }
+
+        let context = $routeParams.context;
+        let code = $routeParams.code;
+
+        if (!(dict.hasOwnProperty(context)))
+            context = "default";
+        if (!(dict[context].hasOwnProperty(code))) {
+            context = "default";
+            if (!(dict[context].hasOwnProperty(code))) {
+                code = "default";
+            }
+        }
+
+        $scope.err = `${$routeParams.code} - ${$routeParams.context.toUpperCase()} ERROR`;
+        $scope.mes = dict[context][code];
 }]);
 
 AppManager.controller(
@@ -385,12 +498,15 @@ AppManager.controller(
     function($rootScope, $scope, userService, $http, $location) {
     
     $scope.loggedIn = userService.isLoggedIn();
+    $scope.userEmail = "@";
+    let context = undefined;
 
     $scope.setUser = function() {
         return $http.get("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
             .then(function(response) {
                 if (response.status == 200) {
                     userService.setUser(response.data);
+                    $scope.userEmail = userService.getUserEmail();
                     return response.status;
                 } else {
                     console.log(response);
@@ -403,6 +519,7 @@ AppManager.controller(
     }
 
     $scope.deleteAccount = function() {
+        context = "deleteAccount"
         $http.delete("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
             .then(function(response) {
                 if (response.status == 204) {
@@ -413,9 +530,11 @@ AppManager.controller(
                     $location.path("/");
                 } else {
                     console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
                 }
             }, function(response){
                 console.log(response);
+                $location.path(`error/${context}/${response.status}`);
             });
     }
     
@@ -426,6 +545,8 @@ AppManager.controller(
             r.then(function(result){
                 if (result == 200) {
                     $location.path("dashboard");
+                } else {
+                    $location.path(`error/toggleLogin/${result}`);
                 }
             });
         }

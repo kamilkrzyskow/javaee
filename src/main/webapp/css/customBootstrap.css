@@ -15,6 +15,13 @@
     min-height: 80vh;
 }
 
+.cus-user-ic {
+    font-size: 26px;
+    position: absolute;
+    top: 0px;
+    right: -4px;
+}
+
 .cus-color-green {
     color: rgb(103,255,110) !important;
 }
