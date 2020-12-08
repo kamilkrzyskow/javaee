@@ -142,7 +142,7 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                 if (userService.getAuthorization())
                     request.headers.Authorization = userService.getAuthorization();
                 request.headers.Accept = '*/*';
-                console.log(request);
+                // console.log(request);
                 return request; 
             },
             response: function(response) {
