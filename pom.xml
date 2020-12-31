@@ -20,7 +20,7 @@
         <dependency>
             <groupId>org.ocpsoft.rewrite</groupId>
             <artifactId>rewrite-config-tuckey</artifactId>
-            <version>${rewrite.version}</version>
+            <version>3.4.4.Final</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
