@@ -26,9 +26,10 @@
                     <div class="card-body">
                         <h5 class="card-title">{{project.project.name}}</h5>
                         <!-- <p class="card-text">{{project.desc}}</p> -->
-                        <a href="project/{{project.project.id}}" class="btn btn-primary card-link">
+                        <!-- <button href="project/{{project.project.id}}" class="btn btn-primary card-link"> -->
+                        <button ng-click="openProject(project.project.id)" class="btn btn-primary card-link">
                             Open Project
-                        </a>
+                        </button>
                         <button ng-if="project.role == 'CREATOR'" class="btn btn-outline-primary" type="button" ng-click="beginEdit(project)" data-toggle="modal" data-target="#editProject">
                             <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                 <title>Edit Project</title>
@@ -59,7 +60,7 @@
                             <path fill-rule="evenodd" d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm4.5 0a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm5 2.755C12.146 12.825 10.623 12 8 12s-4.146.826-5 1.755V14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-.245z"/>
                         </svg>
                         <svg ng-if="project.role == 'USER'" width="1em" height="1em" viewBox="0 0 16 16" class="cus-user-ic bi bi-person-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <title>You are a USER listMembers of this project</title>
+                            <title>You are a USER of this project</title>
                             <path fill-rule="evenodd" d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                         </svg>
                     </div>
@@ -140,8 +141,8 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="listMembersProjectLabel">{{curPrr.name}} - Member List</h5>
-                    <button type="button" class="close" ng-click="curPrr = {}" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title" id="listMembersProjectLabel">{{currentProject.name}} - Member List</h5>
+                    <button type="button" class="close" ng-click="currentProject = {}" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -160,12 +161,12 @@
                             <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
                         </div>
                     </form> -->
-                    <div ng-repeat="user in curPrr.users">
+                    <div ng-repeat="user in currentProject.users">
                         {{user.user.email}} - {{user.role}}
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" ng-click="curPrr = {}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" ng-click="currentProject = {}" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <!-- <button ng-click="listMembersProjectForm.$valid && listMembersProject(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Save Changes</button> -->
                 </div>
             </div>
@@ -202,7 +203,7 @@
                             <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
                         </div> -->
                     </form>
-                    <div ng-repeat="user in curPrr.users">
+                    <div ng-repeat="user in currentProject.users">
                         {{user.user.email}} - {{user.role}}
                     </div>
                 </div>
@@ -244,7 +245,7 @@
                             <textarea ng-model="data.desc" class="form-control" id="project-desc"></textarea>
                         </div> -->
                     </form>
-                    <div ng-repeat="user in curPrr.users">
+                    <div ng-repeat="user in currentProject.users">
                         {{user.user.email}} - {{user.role}}
                     </div>
                 </div>

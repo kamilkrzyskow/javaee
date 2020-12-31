@@ -8,6 +8,7 @@ AppManager.factory('userService', function() {
     };
     let token = undefined;
     let loggedIn = false;
+    let currentProject = undefined;
     return {
         getAuthorization: function() {
             return token;
@@ -20,6 +21,9 @@ AppManager.factory('userService', function() {
         },
         getUserProjects: function() {
             return userData.projects;
+        },
+        getCurrentProject: function() {
+            return currentProject;
         },
         getUser: function() {
             return userData;
@@ -38,6 +42,9 @@ AppManager.factory('userService', function() {
         },
         setUserProjects: function(projects) {
             userData.projects = projects;
+        },
+        setCurrentProject: function(project) {
+            currentProject = angular.copy(project);
         },
         toggleLoggedIn: function() {
             loggedIn = !loggedIn;
@@ -80,7 +87,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
             controller: 'errorController'
         })
         .when("/project/:id", {
-            templateUrl: "views/project.html",
+            templateUrl: "views/project.txt",
             controller: 'ProjectController'
         })
         .when("/404", {
@@ -247,15 +254,16 @@ AppManager.controller(
     ["$scope", "$http", "$location", "userService",
     function($scope, $http, $location, userService) {
 
-        // if (userService.getAuthorization() === undefined) {
-        //     $location.path("/");
-        //     return;
-        // }
+        if (userService.getAuthorization() === undefined) {
+            $location.path("error/DashboardController/403");
+            return;
+        }
+
         let context = undefined;
         let userData = undefined;
         $scope.users = {};
         $scope.edit = {};
-        $scope.curPrr = {};
+        $scope.currentProject = {};
         
         // let projects = [
         //     {
@@ -318,6 +326,23 @@ AppManager.controller(
             $scope.data = {};
         }
 
+        $scope.openProject = function(projectId) { 
+            context = "openProject";
+            $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + projectId)
+            .then(function(response) {
+                if (response.status == 200) {
+                    userService.setCurrentProject(response.data);
+                    $location.path(`project/${projectId}`);
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+        }
+
         $scope.deleteProject = function (edit) {
             context = "deleteProject";
             $http.delete("https://uz-kanban-backend.herokuapp.com/projects/" + edit.id)
@@ -364,16 +389,19 @@ AppManager.controller(
         }
 
         $scope.loadMembers = function (id) {
+            context = "loadMembers";
             $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + id)
             .then(function(response) {
                 if (response.status == 200) {
-                    $scope.curPrr = response.data;
-                    console.log($scope.curPrr);
+                    $scope.currentProject = response.data;
+                    console.log($scope.currentProject);
                 } else {
                     console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
                 }
             }, function(response){
                 console.log(response);
+                $location.path(`error/${context}/${response.status}`);
             });
         }
 
@@ -429,32 +457,188 @@ AppManager.controller(
 
 AppManager.controller(
     "ProjectController", 
-    ["$scope", "userService", "$location", "$routeParams",
-    function($scope, userService, $location, $routeParams) {
+    ["$scope", "userService", "$location", "$routeParams", "$http",
+    function($scope, userService, $location, $routeParams, $http) {
 
-        // if (userService.getAuthorization() === undefined) {
-        //     $location.path("/");
-        //     return;
-        // }
-
-        $scope.models = {
-            selected: null,
-            lists: {
-                "A": [], 
-                "B": []
-            }
-        };
-        
-        // Generate initial model
-        for (var i = 1; i <= 3; ++i) {
-            $scope.models.lists.A.push({label: "Item A" + i});
-            $scope.models.lists.B.push({label: "Item B" + i});
+        if (userService.getAuthorization() === undefined) {
+            $location.path("error/ProjectController/403");
+            return;
         }
 
-        console.log($scope.models.lists);
+        $scope.addContainer = function(data) {
+            userData = angular.copy(data);
+            context = "addContainer";
+            $http.post("https://uz-kanban-backend.herokuapp.com/containers/" + $routeParams.id, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        delete response.data.project;
+                        $scope.models.containers.push(response.data);
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+            $scope.data = {};
+        }
+
+        $scope.beginAddTask = function(container) {
+            let currentContainerIndex = $scope.models.containers.indexOf(container);
+            $scope.edit.containerIndex = currentContainerIndex;
+            $scope.edit.containerId = container.id;
+            $scope.edit.containerName = container.name;
+        }
+
+        $scope.addTask = function(data, edit) {
+            userData = angular.copy(data);
+            context = "addTask";
+            $http.post("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.containerId, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        delete response.data.container;
+                        $scope.models.containers[edit.containerIndex].tasks.push(response.data);
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+            $scope.data = {};
+            $scope.edit = {};
+        }
+
+        $scope.beginMoveTask = function(container, task) {
+            $scope.insert.containerId = container.id;
+            $scope.insert.container = container;
+            $scope.insert.taskId = task.id;
+            $scope.insert.position = container.tasks.indexOf(task);
+            
+            // container.tasks.forEach(function(t, i) {
+            //     if (t.containerPosition >= position)
+            //         t.containerPosition++;
+            // });
+            // task.containerPosition = position;
+        }
+
+        $scope.moveTask = function(container, taskIndex) {
+            context = "moveTask";
+            if (container.id === $scope.insert.containerId) {
+                // if (container.tasks.length-1 !== taskIndex)
+                // if (($scope.insert.position - taskIndex) === 1)
+                //     $scope.insert.position--;
+                if ((container.tasks.length === taskIndex))
+                    taskIndex--;
+                else
+                    $scope.insert.position--;
+                // console.log($scope.insert.position)
+                // console.log(taskIndex)
+                if ($scope.insert.position === taskIndex) {
+                    return;
+                }
+            }
+
+            $http.put(`https://uz-kanban-backend.herokuapp.com/tasks/${$scope.insert.taskId}/position`, null, {
+                params: {
+                    "containerId": $scope.insert.containerId, 
+                    "position": $scope.insert.position
+                }
+            })
+            .then(function(response) {
+                if (response.status == 200) {
+                    console.log("move position")
+                    $scope.organizeTasks(container);
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            })
+            .then(function(result) {
+                $scope.insert = {};
+            });
+            
+        }
+
+        $scope.organizeTasks = function(container) {
+            $scope.insert.container.tasks.forEach(function(t, i) {
+                if (t.containerPosition >= $scope.insert.position)
+                    t.containerPosition++;
+            });
+            $scope.insert.container.tasks[$scope.insert.position].containerPosition = $scope.insert.position;
+            container.tasks.forEach(function(t, i) {
+                if (t.containerPosition >= $scope.insert.position)
+                    t.containerPosition--;
+            });
+        }
+
+        $scope.edit = {};
+        $scope.insert = {};
+
+        currentProject = angular.copy(userService.getCurrentProject());
+        userService.setCurrentProject(undefined);
+        let containers = currentProject.containers;
+
+        $scope.showTask = function(task) {
+            console.log(task);
+            // console.log($scope.models.containers);
+        };
+
+        $scope.models = {
+            // selected: null,
+            containers: [
+                // {
+                //     name: "A",
+                //     tasks: []
+                // },
+                // {
+                //     name: "B",
+                //     tasks: []
+                // },
+                // {
+                //     name: "C",
+                //     tasks: []
+                // },
+                // {
+                //     name: "D",
+                //     tasks: []
+                // },
+                // {
+                //     name: "E",
+                //     tasks: []
+                // }
+            ]
+        };
+
+        containers.sort(function(a, b){return a.projectPosition - b.projectPosition});
+        containers.forEach(function (container, i) {
+            container.tasks.sort(function(a, b){return a.containerPosition - b.containerPosition});
+            $scope.models.containers.push(container);
+            // container.tasks.forEach(function (task, i) {
+            //     $scope.models.containers[container.id].items.push({label: task.name});
+            // });
+        });
+        
+        // Generate initial model
+        // for (var i = 1; i <= 3; ++i) {
+        //     $scope.models.containers.A.tasks.push({name: "Item A" + i, containerPosition: 5});
+        //     $scope.models.containers.B.tasks.push({name: "Item B" + i, containerPosition: 5});
+        //     $scope.models.containers.C.tasks.push({name: "Item C" + i, containerPosition: 5});
+        //     $scope.models.containers.D.tasks.push({name: "Item D" + i, containerPosition: 5});
+        //     $scope.models.containers.E.tasks.push({name: "Item D" + i, containerPosition: 5});
+        // }
+
+        console.log($scope.models.containers);
         console.log($routeParams.id);
         console.log($location.path());
+        console.log(currentProject);
 
+        
 }]);
 
 AppManager.controller(
@@ -478,7 +662,7 @@ AppManager.controller(
                 "403": "You are unauthorized to do this action",
                 "-1": "A connection with the backend server could not be established",
                 "500": "The backend server could not process your request",
-                "404": "The requested resource could was not found",
+                "404": "The requested resource was not found",
                 "default": "We don't know what happend"
             }
         }

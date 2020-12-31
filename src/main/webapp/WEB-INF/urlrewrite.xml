@@ -15,11 +15,11 @@
             The rule means that requests to /test/status/ will be redirected to /rewrite-status
             the url will be rewritten.
         </note>
-        <from>/test/status/</from>
-        <to type="redirect">%{context-path}/rewrite-status</to>
+        <from>/(.*)</from>
+        <to type="redirect">/index.jsp/$1</to>
     </rule>
 
-
+<!--
     <outbound-rule>
         <note>
             The outbound-rule specifies that when response.encodeURL is called (if you are using JSTL c:url)
@@ -34,7 +34,7 @@
     </outbound-rule>
 
 
-    <!--
+    
 
     INSTALLATION
 

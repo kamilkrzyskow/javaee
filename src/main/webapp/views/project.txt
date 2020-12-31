@@ -11,20 +11,25 @@
                 <div class="panel panel-info">
                     <div class="panel-heading">
                         <h3 class="panel-title">{{container.name}}</h3>
+                        <button ng-click="beginAddTask(container)" class="btn btn-primary" type="button" data-toggle="modal" data-target="#addTask">
+                            +Add+
+                        </button>
                     </div>
                     <div class="simpleLists">
-                        <ul dnd-list="container.tasks">
+                        <ul dnd-list="container.tasks"
+                            dnd-inserted="beginMoveTask(container, item)"
+                            >
                             <li ng-repeat="task in container.tasks"
                                 dnd-draggable="task"
-                                dnd-moved="container.tasks.splice($index, 1)"
+                                dnd-moved="container.tasks.splice($index, 1) && moveTask(container, $index)"
                                 dnd-effect-allowed="move"
                                 ng-click="showTask(task)"
                                 >
                                 <!-- | orderBy:'containerPosition' 
                                     dnd-selected="models.selected = task"
                                     ng-class="{'selected': models.selected === task}"
+                                dnd-dragend="container.tasks.push({name: 'Item A' + i, containerPosition: 5})"
                                 -->
-                                {{task.id}}
                                 {{task.name}}
                             </li>
                         </ul>
@@ -34,4 +39,5 @@
         </div>
     </div>
     <ng-include src="'views/modals/addContainer.txt'"></ng-include>
+    <ng-include src="'views/modals/addTask.txt'"></ng-include>
 </div>

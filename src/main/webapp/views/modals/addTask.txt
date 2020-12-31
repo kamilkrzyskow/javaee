@@ -1,0 +1,32 @@
+<div class="modal fade" data-backdrop="static" id="addTask" tabindex="-1" aria-labelledby="addTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskLabel">Add Task to {{edit.containerName}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form name="addTaskForm">
+                    <!-- <div class="form-group">
+                        <label for="project-id" class="col-form-label">Project ID:</label>
+                        <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                    </div> -->
+                    <div class="form-group">
+                        <label for="addTask-name" class="col-form-label">Task Name:</label>
+                        <input ng-model="data.name" type="text" class="form-control" id="addTask-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addTask-desc" class="col-form-label">Task Description:</label>
+                        <textarea ng-model="data.description" class="form-control" id="addTask-desc" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" ng-click="edit = {}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button ng-click="addTaskForm.$valid && addTask(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Create Task</button>
+            </div>
+        </div>
+    </div>
+</div>

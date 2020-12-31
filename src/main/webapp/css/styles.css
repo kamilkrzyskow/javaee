@@ -70,7 +70,7 @@ input{
  * The dnd-list should always have a min-height,
  * otherwise you can't drop to it once it's empty
  */
- .simpleDemo ul[dnd-list] {
+ .simpleLists ul[dnd-list] {
     min-height: 42px;
     padding-left: 0px;
 }
@@ -81,7 +81,7 @@ input{
  * sense to hide it to give the user the feeling
  * that he's actually moving it.
  */
-.simpleDemo ul[dnd-list] .dndDraggingSource {
+.simpleLists ul[dnd-list] .dndDraggingSource {
     display: none;
 }
 
@@ -90,13 +90,13 @@ input{
  * added to the dnd-list while the user is dragging
  * over it.
  */
-.simpleDemo ul[dnd-list] .dndPlaceholder {
+.simpleLists ul[dnd-list] .dndPlaceholder {
     background-color: #ddd;
     display: block;
     min-height: 42px;
 }
 
-.simpleDemo ul[dnd-list] li {
+.simpleLists ul[dnd-list] li {
     background-color: #fff;
     border: 1px solid #ddd;
     border-top-right-radius: 4px;
@@ -109,7 +109,7 @@ input{
 /**
  * Show selected elements in green
  */
-.simpleDemo ul[dnd-list] li.selected {
+.simpleLists ul[dnd-list] li.selected {
     background-color: #dff0d8;
     color: #3c763d;
 }
