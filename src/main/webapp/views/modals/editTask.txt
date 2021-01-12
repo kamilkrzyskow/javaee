@@ -1,0 +1,49 @@
+<div class="modal fade" data-backdrop="static" id="editTask" tabindex="-1" aria-labelledby="editTaskLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskLabel">Edit Task {{edit.name}}</h5>
+                <button type="button" class="close" ng-click="edit = {}; data = {}" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form name="editTaskForm">
+                    <!-- <div class="form-group">
+                        <label for="project-id" class="col-form-label">Project ID:</label>
+                        <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
+                    </div> -->
+                    <div class="form-group">
+                        <label for="editTask-name" class="col-form-label">Task Name:</label>
+                        <input ng-model="data.name" type="text" class="form-control" id="editTask-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTask-desc" class="col-form-label">Task Description:</label>
+                        <textarea ng-model="data.description" class="form-control" id="editTask-desc" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="editTask-date">Deadline Date:</label>
+                            <input ng-model="data.deadlineDate" type="date" class="form-control" id="editTask-date">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="editTask-time">Deadline Time (CET):</label>
+                            <input ng-model="data.deadlineTime" step="1" type="time" class="form-control" id="editTask-time">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input ng-model="data.done" type="checkbox" class="custom-control-input" id="editTask-done">
+                            <label for="editTask-done" class="custom-control-label">Mark as done</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button ng-click="deleteTask(edit)" type="button" class="btn btn-danger" data-dismiss="modal">Delete Task</button>
+                <button type="button" ng-click="edit = {}; data = {}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button ng-click="editTaskForm.$valid && editTask(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Edit Task</button>
+            </div>
+        </div>
+    </div>
+</div>

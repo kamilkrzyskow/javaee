@@ -48,6 +48,7 @@ AppManager.factory('userService', function() {
         },
         toggleLoggedIn: function() {
             loggedIn = !loggedIn;
+            if (!loggedIn) token = undefined;
         },
         clearUser: function() {
             for (property in userData) {
@@ -67,6 +68,15 @@ AppManager.config(['$sceDelegateProvider', function($sceDelegateProvider) {
       'https://uz-kanban-backend.herokuapp.com/**'
     ]);
 }]);
+
+AppManager.directive('myInclude', function() {
+    return {
+        restrict: 'AE',
+        templateUrl: function(ele, attrs) {
+            return attrs.templatePath;
+        }
+    };
+  });
 
 AppManager.config(["$routeProvider", function($routeProvider) {
     $routeProvider
@@ -166,6 +176,9 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                         userService.setUserProjects(response.data.projects);
                 }
                 if (response.status == 403) {
+                    userService.clearUser();
+                    userService.toggleLoggedIn();
+                    $rootScope.$broadcast("toggleLoggedIn");
                     console.log(response);
                     $location.path(`error/default/${response.status}`);
                 }
@@ -465,6 +478,27 @@ AppManager.controller(
             return;
         }
 
+        // $scope.setDataDate = function() {
+        //     let date = new Date();
+
+        //     let day = date.getDate();
+        //     let month = date.getMonth() + 1;
+        //     let year = date.getFullYear();
+        //     let hour = date.getHours();
+        //     let min  = date.getMinutes();
+
+        //     month = (month < 10 ? "0" : "") + month;
+        //     day = (day < 10 ? "0" : "") + day;
+        //     hour = (hour < 10 ? "0" : "") + hour;
+        //     min = (min < 10 ? "0" : "") + min;
+
+        //     let today = year + "-" + month + "-" + day;
+        //     let time = hour + ":" + min;
+
+        //     $scope.data.deadlineDate = today;
+        //     $scope.data.deadlineTime = time;
+        // }
+
         $scope.addContainer = function(data) {
             userData = angular.copy(data);
             context = "addContainer";
@@ -494,6 +528,7 @@ AppManager.controller(
         $scope.addTask = function(data, edit) {
             userData = angular.copy(data);
             context = "addTask";
+            $scope.setDateTime(userData);
             $http.post("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.containerId, JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
@@ -516,6 +551,7 @@ AppManager.controller(
             $scope.insert.container = container;
             $scope.insert.taskId = task.id;
             $scope.insert.position = container.tasks.indexOf(task);
+            console.log("beginLength", container.tasks.length);
             
             // container.tasks.forEach(function(t, i) {
             //     if (t.containerPosition >= position)
@@ -530,16 +566,22 @@ AppManager.controller(
                 // if (container.tasks.length-1 !== taskIndex)
                 // if (($scope.insert.position - taskIndex) === 1)
                 //     $scope.insert.position--;
-                if ((container.tasks.length === taskIndex))
-                    taskIndex--;
-                else
+                // if (container.tasks.length === taskIndex)
+                //     taskIndex--;
+                if ($scope.insert.position > taskIndex)
                     $scope.insert.position--;
-                // console.log($scope.insert.position)
-                // console.log(taskIndex)
+                if ($scope.insert.position < taskIndex)
+                    taskIndex--;
+                // if (taskIndex > 0) taskIndex--;
+                // if ($scope.insert.position > 0) $scope.insert.position--;
+                
                 if ($scope.insert.position === taskIndex) {
                     return;
                 }
+
             }
+            console.log("position to put", $scope.insert.position)
+            console.log("taskIndex taken from", taskIndex)
 
             $http.put(`https://uz-kanban-backend.herokuapp.com/tasks/${$scope.insert.taskId}/position`, null, {
                 params: {
@@ -550,7 +592,7 @@ AppManager.controller(
             .then(function(response) {
                 if (response.status == 200) {
                     console.log("move position")
-                    $scope.organizeTasks(container);
+                    $scope.organizeMoveTasks(container);
                 } else {
                     console.log(response);
                     $location.path(`error/${context}/${response.status}`);
@@ -565,7 +607,101 @@ AppManager.controller(
             
         }
 
-        $scope.organizeTasks = function(container) {
+        $scope.beginEditTask = function(task, container) {
+            $scope.edit.currentTask = task;
+            $scope.edit.currentContainer = container;
+            
+            $scope.data.name = $scope.edit.currentTask.name;
+            $scope.data.description = $scope.edit.currentTask.description;
+
+            if ($scope.edit.currentTask.deadlineDate !== null) {
+                let datetime = $scope.edit.currentTask.deadlineDate.split(".")[0];
+                $scope.data.deadlineDate = new Date(datetime);
+                $scope.data.deadlineTime = new Date(datetime);
+            }
+            $scope.data.done = $scope.edit.currentTask.done;
+            console.log(task);
+        }
+
+        $scope.editTask = function(data, edit) {
+            userData = angular.copy(data);
+            context = "editTask";
+            $scope.setDateTime(userData);
+            $http.put("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.currentTask.id, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        console.log(edit);
+                        edit.currentTask.name = userData.name;
+                        edit.currentTask.description = userData.description;
+                        edit.currentTask.done = userData.done;
+                        edit.currentTask.deadlineDate = userData.deadlineDate;
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+            console.log(userData);
+
+            $scope.data = {};
+            $scope.edit = {};
+        }
+
+        $scope.setDateTime = function(userData) {
+            if (userData.deadlineDate) {
+                let date = userData.deadlineDate;
+                let time;
+                if (userData.deadlineTime)
+                    time = userData.deadlineTime;
+                else
+                    time = userData.deadlineDate;
+                
+                userData.deadlineDate = 
+                    date.getFullYear() + 
+                    "-" + 
+                    ("0"+(date.getMonth()+1)).slice(-2) + 
+                    "-" + 
+                    ("0" + date.getDate()).slice(-2) + 
+                    "T" + 
+                    ("0" + ((time.getHours()) >= 0 ? (time.getHours()) : 0)).slice(-2) + 
+                    ":" + 
+                    ("0" + time.getMinutes()).slice(-2) + 
+                    ":" + 
+                    ("0" + time.getSeconds()).slice(-2);
+            } else {
+                userData.deadlineDate = null;
+            }
+            if (userData.deadlineTime) delete userData.deadlineTime;
+            
+        }
+
+        $scope.deleteTask = function(edit) {
+            let containerIndex = $scope.models.containers.indexOf(edit.currentContainer);
+            console.log(containerIndex);
+            let taskIndex = $scope.models.containers[containerIndex].tasks.indexOf(edit.currentTask);
+            context = "deleteTask";
+            $http.delete("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.currentTask.id)
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Task DELETED");
+                    $scope.models.containers[containerIndex].tasks.splice(taskIndex, 1);
+                    $scope.organizeDeleteTasks(containerIndex, taskIndex);
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+            
+            $scope.edit = {};
+            $scope.data = {};
+        }
+
+        $scope.organizeMoveTasks = function(container) {
             $scope.insert.container.tasks.forEach(function(t, i) {
                 if (t.containerPosition >= $scope.insert.position)
                     t.containerPosition++;
@@ -577,8 +713,16 @@ AppManager.controller(
             });
         }
 
+        $scope.organizeDeleteTasks = function(containerIndex, taskIndex) {
+            $scope.models.containers[containerIndex].tasks.forEach(function (t, i) {
+                if (t.containerPosition >= taskIndex)
+                    t.containerPosition--;
+            });
+        }
+
         $scope.edit = {};
         $scope.insert = {};
+        $scope.data = {};
 
         currentProject = angular.copy(userService.getCurrentProject());
         userService.setCurrentProject(undefined);
@@ -588,6 +732,8 @@ AppManager.controller(
             console.log(task);
             // console.log($scope.models.containers);
         };
+
+
 
         $scope.models = {
             // selected: null,
