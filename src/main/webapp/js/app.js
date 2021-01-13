@@ -1,11 +1,7 @@
 let AppManager = angular.module('AppManager', ["ngRoute", "dndLists"]);
 
 AppManager.factory('userService', function() {
-    let userData = {
-        id: undefined,
-        email: undefined,
-        projects: undefined
-    };
+    let userData = {};
     let token = undefined;
     let loggedIn = false;
     let currentProject = undefined;
@@ -21,6 +17,9 @@ AppManager.factory('userService', function() {
         },
         getUserProjects: function() {
             return userData.projects;
+        },
+        getUserNotifications: function() {
+            return userData.notifications;
         },
         getCurrentProject: function() {
             return currentProject;
@@ -42,6 +41,9 @@ AppManager.factory('userService', function() {
         },
         setUserProjects: function(projects) {
             userData.projects = projects;
+        },
+        setUserNotifications: function(notifications) {
+            userData.notifications = notifications;
         },
         setCurrentProject: function(project) {
             currentProject = angular.copy(project);
@@ -76,7 +78,33 @@ AppManager.directive('myInclude', function() {
             return attrs.templatePath;
         }
     };
-  });
+});
+
+AppManager.directive('myNotification', function($compile) {
+    return {
+        restrict: 'AE',
+        templateUrl: function(ele, attrs) {
+            return attrs.templatePath;
+        },
+        link: function(scope, elements, attrs) {
+            $(".popper").popover({
+                trigger: 'click',
+                placement: 'bottom',
+                html: true,
+                container: '.navbar',
+                content: function() {
+                    return $compile($(".popper-content").html())(scope);
+                }
+            });
+  
+            scope.markAsRead = function() {
+                alert("it works");
+                console.log("maybe");
+            }
+
+        }
+    }
+});
 
 AppManager.config(["$routeProvider", function($routeProvider) {
     $routeProvider
@@ -97,7 +125,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
             controller: 'errorController'
         })
         .when("/project/:id", {
-            templateUrl: "views/project.txt",
+            templateUrl: "views/project.html",
             controller: 'ProjectController'
         })
         .when("/404", {
@@ -112,11 +140,23 @@ AppManager.config(["$routeProvider", function($routeProvider) {
         .when("/400", {
             templateUrl: "views/400.html"
         })
+        .when("/forgotForm", {
+            templateUrl: "views/forgotForm.html"
+        })
         .when("/registerForm", {
             templateUrl: "views/register.html"
         })
         .when("/loginForm", {
             templateUrl: "views/login.html"
+        })
+        .when("/forgot-pass", {
+            resolveRedirectTo: ["userService", function(userService) {
+                if (userService.isLoggedIn()) {
+                    return "/dashboard";
+                } else {
+                    return "/forgotForm";
+                }
+            }]
         })
         .when("/login", {
             resolveRedirectTo: ["userService", function(userService) {
@@ -140,7 +180,7 @@ AppManager.config(["$routeProvider", function($routeProvider) {
             templateUrl: "views/registerSuccess.html"
         })
         .when("/dashboard", {
-            templateUrl: "views/dashboard.txt",
+            templateUrl: "views/dashboard.html",
             controller: 'DashboardController'
         })
         .otherwise({
@@ -174,6 +214,8 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                         userService.setUserEmail(response.data.email);
                     if (response.data.projects)
                         userService.setUserProjects(response.data.projects);
+                    if (response.data.notifications)
+                        userService.setUserNotifications(response.data.notifications)
                 }
                 if (response.status == 403) {
                     userService.clearUser();
@@ -193,6 +235,8 @@ AppManager.controller(
     ["$rootScope", "$scope", "$http", "$location", "$sce", "userService",
     function($rootScope, $scope, $http, $location, $sce, userService) {
         let context = undefined;
+        $scope.tokenRequestSent = false;
+        $scope.data = {};
         $scope.login = function(data) {
             userData = angular.copy(data);
             context = "login";
@@ -200,7 +244,7 @@ AppManager.controller(
                 .then(function(response) {
                     if (response.status == 200) {
                         userService.toggleLoggedIn();
-                        $rootScope.$broadcast("toggleLoggedIn");
+                        $scope.$emit("toggleLoggedIn");
                     } else {
                         console.log(response);
                         $location.path(`error/${context}/${response.status}`);
@@ -230,7 +274,7 @@ AppManager.controller(
             $scope.data = {};
         };
         $scope.checkPass = function(data) {
-            if (data.password == $scope.passwordConfirm) {
+            if ((data.password == data.passwordConfirm) || (data.password == $scope.passwordConfirm)) {
                 angular.element(document.getElementById("submit").disabled = false);
             } else {
                 angular.element(document.getElementById("submit").disabled = true);
@@ -258,7 +302,17 @@ AppManager.controller(
         $scope.logout = function() {
             userService.clearUser();
             userService.toggleLoggedIn();
-            $rootScope.$broadcast("toggleLoggedIn");
+            $scope.$emit("toggleLoggedIn");
+        }
+        $scope.getRecoveryToken = function(data) {
+            context = "getRecoveryToken";
+            $scope.tokenRequestSent = true;
+            $scope.data = {};
+        }
+        $scope.recoverPassword = function (data) {
+            context = "recoverPassword";
+            delete data.passwordConfirm;
+            $location.path("/loginForm");
         }
 }]);
 
@@ -328,6 +382,7 @@ AppManager.controller(
                         project.project = response.data;
                         $scope.prr.push(project);
                         userService.setUserProjects($scope.prr);
+                        $scope.$emit("loadNotification");
                     } else {
                         console.log(response);
                         $location.path(`error/${context}/${response.status}`);
@@ -477,6 +532,8 @@ AppManager.controller(
             $location.path("error/ProjectController/403");
             return;
         }
+
+        let context = undefined;
 
         // $scope.setDataDate = function() {
         //     let date = new Date();
@@ -831,12 +888,42 @@ AppManager.controller(
 
 AppManager.controller(
     "SiteController", 
-    ["$rootScope", "$scope", "userService", "$http", "$location",
-    function($rootScope, $scope, userService, $http, $location) {
+    ["$rootScope", "$scope", "userService", "$http", "$location", "$interval",
+    function($rootScope, $scope, userService, $http, $location, $interval) {
     
     $scope.loggedIn = userService.isLoggedIn();
+    $scope.notificationsRead = true; 
     $scope.userEmail = "@";
+    $scope.notifications = userService.getUserNotifications();
     let context = undefined;
+
+    let notificationInterval;
+    $scope.updateNotifications = function() {
+        if ( angular.isDefined(notificationInterval) ) return;
+
+        notificationInterval = $interval(function() {
+            console.log("interval running");
+            if ($scope.loggedIn) {
+                $scope.$broadcast("loadNotification");
+            }
+        }, 5000);
+    };
+
+    angular.element(document).ready(function(){
+        $scope.updateNotifications();
+    });
+
+    $scope.stopNotifications = function() {
+        if (angular.isDefined(notificationInterval)) {
+            $interval.cancel(notificationInterval);
+            notificationInterval = undefined;
+        }
+    };
+
+    $scope.$on('$destroy', function() {
+        console.log("destroy");
+        $scope.stopNotifications();
+    });
 
     $scope.setUser = function() {
         return $http.get("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
@@ -844,6 +931,7 @@ AppManager.controller(
                 if (response.status == 200) {
                     userService.setUser(response.data);
                     $scope.userEmail = userService.getUserEmail();
+                    $scope.notifications = userService.getUserNotifications();
                     return response.status;
                 } else {
                     console.log(response);
@@ -854,6 +942,66 @@ AppManager.controller(
                 return response.status;
             });
     }
+
+    $scope.setNotification = function() {
+        return $http.get("https://uz-kanban-backend.herokuapp.com/users/" + userService.getUserId())
+            .then(function(response) {
+                if (response.status == 200) {
+                    userService.setUserNotifications(response.data.notifications);
+                    $scope.notifications = userService.getUserNotifications();
+                    return response.status;
+                } else {
+                    console.log(response);
+                    return response.status;
+                }
+            }, function(response){
+                console.log(response);
+                return response.status;
+            });
+    }
+
+    $scope.markAsRead = function() {
+        context = "markNotificationsAsRead"
+        $http.put(`https://uz-kanban-backend.herokuapp.com/users/${userService.getUserId()}/read`)
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Notifications read");
+                    $scope.notifications.forEach(element => {
+                        element.read = true;
+                    });
+                    $scope.$broadcast("checkReadNotification");
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+    }
+
+    $scope.$on('checkReadNotification', function () {
+        console.log("checkReadNotification");
+        $scope.notificationsRead = !$scope.notifications.some((val) => val.read == false);
+    });
+
+    $scope.$on('loadNotification', function () {
+        $scope.loggedIn = userService.isLoggedIn();
+        if ($scope.loggedIn) {
+            let r = $scope.setNotification();
+            r.then(function(result){
+                if (result == 200) {
+                    console.log("notificationLoad Success", result)
+                    $scope.$broadcast("checkReadNotification");
+                } else {
+                    // userService.toggleLoggedIn();
+                    // $scope.loggedIn = userService.isLoggedIn();
+                    // $location.path(`error/loadNotification/${result}`);
+                    console.log("notificationLoad Error", result)
+                }
+            });
+        }     
+    });
 
     $scope.deleteAccount = function() {
         context = "deleteAccount"
@@ -883,6 +1031,8 @@ AppManager.controller(
                 if (result == 200) {
                     $location.path("dashboard");
                 } else {
+                    userService.toggleLoggedIn();
+                    $scope.loggedIn = userService.isLoggedIn();
                     $location.path(`error/toggleLogin/${result}`);
                 }
             });

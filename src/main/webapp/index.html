@@ -5,14 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta charset="UTF-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Local - NotATrelloCopy</title>
+        <title>NotATrelloCopy</title>
         <!-- SCRIPTS -->
         <script src="bootstrap/js/jquery-3.5.1.slim.min.js"></script>
         <script src="bootstrap/js/popper.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <script src="js/lib/angular.min.js"></script>
         <script src="js/lib/angular-route.min.js"></script>
-        <script src="js/lib/angular-drag-and-drop-lists.js"></script>
+        <script src="js/lib/angular-drag-and-drop-lists.min.js"></script>
         <script src="js/app.js"></script>
         <!-- CSS -->
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
     </head>
     <body>
         <header ng-include="'publicHeader.html'" ng-if="!loggedIn"></header>
-        <header ng-include="'userHeader.txt'" ng-if="loggedIn"></header>
+        <header ng-include="'userHeader.html'" ng-if="loggedIn"></header>
         <main ng-view></main>
         <div class="modal fade" id="deleteAccount" tabindex="-1" aria-labelledby="deleteAccountLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
