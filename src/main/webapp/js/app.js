@@ -50,7 +50,7 @@ AppManager.factory('userService', function() {
         },
         toggleLoggedIn: function() {
             loggedIn = !loggedIn;
-            if (!loggedIn) token = undefined;
+            // if (!loggedIn) token = undefined;
         },
         clearUser: function() {
             for (property in userData) {
@@ -305,14 +305,43 @@ AppManager.controller(
             $scope.$emit("toggleLoggedIn");
         }
         $scope.getRecoveryToken = function(data) {
+            console.log("recoveryToken");
+            userData = angular.copy(data);
             context = "getRecoveryToken";
-            $scope.tokenRequestSent = true;
+            $http.post(`https://uz-kanban-backend.herokuapp.com/users/${userData.email}/token`, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        console.log(response);
+                        $scope.tokenRequestSent = true;
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
             $scope.data = {};
         }
         $scope.recoverPassword = function (data) {
             context = "recoverPassword";
             delete data.passwordConfirm;
-            $location.path("/loginForm");
+            userData = angular.copy(data);
+            console.log("recoverPassword");
+            $http.put("https://uz-kanban-backend.herokuapp.com/users/restartPassword", JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        console.log(response);
+                        $location.path("/loginForm");
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+                $scope.data = {};
         }
 }]);
 
