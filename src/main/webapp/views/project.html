@@ -20,7 +20,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title">{{container.name}}</h3>
                         <button ng-click="beginAddTask(container)" class="btn btn-primary" type="button" data-toggle="modal" data-target="#addTask">
-                            +Add+
+                            Add task
                         </button>
                     </div>
                     <div class="simpleLists">
@@ -29,6 +29,8 @@
                             >
                             <li ng-repeat="task in container.tasks"
                                 dnd-draggable="task"
+                                dnd-dragstart="addLock()"
+                                dnd-dragend="subLock()"
                                 dnd-moved="container.tasks.splice($index, 1) && moveTask(container, $index)"
                                 dnd-effect-allowed="move"
                                 ng-click="beginEditTask(task, container)"

@@ -13,7 +13,7 @@
                 <div class="dropdown-item" ng-if="notifications.length == 0">No notifications</div>
                 <div class="pop-scroll" ng-if="notifications.length > 0">
                     <div class="dropdown-item" ng-repeat="notification in notifications | orderBy:'-id'">
-                        {{notification.message}}
+                        {{notification.creationDate.split("T")[0]}} {{notification.creationDate.split("T")[1].split(".")[0]}} {{notification.message}}
                     </div>
                 </div>
             </div>

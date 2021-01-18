@@ -50,7 +50,7 @@ AppManager.factory('userService', function() {
         },
         toggleLoggedIn: function() {
             loggedIn = !loggedIn;
-            // if (!loggedIn) token = undefined;
+            if (!loggedIn) token = undefined;
         },
         clearUser: function() {
             for (property in userData) {
@@ -78,32 +78,6 @@ AppManager.directive('myInclude', function() {
             return attrs.templatePath;
         }
     };
-});
-
-AppManager.directive('myNotification', function($compile) {
-    return {
-        restrict: 'AE',
-        templateUrl: function(ele, attrs) {
-            return attrs.templatePath;
-        },
-        link: function(scope, elements, attrs) {
-            $(".popper").popover({
-                trigger: 'click',
-                placement: 'bottom',
-                html: true,
-                container: '.navbar',
-                content: function() {
-                    return $compile($(".popper-content").html())(scope);
-                }
-            });
-  
-            scope.markAsRead = function() {
-                alert("it works");
-                console.log("maybe");
-            }
-
-        }
-    }
 });
 
 AppManager.config(["$routeProvider", function($routeProvider) {
@@ -193,7 +167,7 @@ AppManager.config(["$locationProvider", function($locationProvider){
 }]);
 
 AppManager.config(["$httpProvider", function($httpProvider) {
-    $httpProvider.interceptors.push(function(userService) {
+    $httpProvider.interceptors.push(["userService", "$rootScope", function(userService, $rootScope) {
         return {
             request: function(request) {
                 if (userService.getAuthorization())
@@ -203,31 +177,36 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                 return request; 
             },
             response: function(response) {
-                if (response.status == 200) {
-                    if (response.data.token)
-                        userService.setAuthorization(response.data.token);
-                    if (response.data.id && (userService.getUserId() === undefined))
-                        userService.setUserId(response.data.id);
-                    else if (response.data.userId)
-                        userService.setUserId(response.data.userId);
-                    if (response.data.email)
-                        userService.setUserEmail(response.data.email);
-                    if (response.data.projects)
-                        userService.setUserProjects(response.data.projects);
-                    if (response.data.notifications)
-                        userService.setUserNotifications(response.data.notifications)
+                
+                if (response.data.token)
+                    userService.setAuthorization(response.data.token);
+                if (response.data.id && (userService.getUserId() === undefined))
+                    userService.setUserId(response.data.id);
+                else if (response.data.userId)
+                    userService.setUserId(response.data.userId);
+                if (response.data.email)
+                    userService.setUserEmail(response.data.email);
+                if (response.data.projects)
+                    userService.setUserProjects(response.data.projects);
+                if (response.data.notifications)
+                    userService.setUserNotifications(response.data.notifications)
+                if (response.headers().authorization) {
+                    userService.setAuthorization(response.headers().authorization);
                 }
-                if (response.status == 403) {
+                
+                return response;
+            },
+            responseError: function (rejection) {
+                // console.log(rejection);
+                if (rejection.status == 403) {
                     userService.clearUser();
                     userService.toggleLoggedIn();
                     $rootScope.$broadcast("toggleLoggedIn");
-                    console.log(response);
-                    $location.path(`error/default/${response.status}`);
                 }
-                return response;
+                return rejection;
             }
         }
-    })
+    }])
 }]);
 
 AppManager.controller(
@@ -382,21 +361,21 @@ AppManager.controller(
         console.log(userService.getUser());
         console.log($scope.prr);
         
-        $scope.test = function() {
-            context = "test";
-            $http.get("https://uz-kanban-backend.herokuapp.com/users")
-                .then(function(response) {
-                    if (response.status == 200) {
-                        $scope.users = response.data;
-                    } else {
-                        console.log(response);
-                        $location.path(`error/default/${response.status}`);
-                    }
-                }, function(response){
-                    console.log(response);
-                    $location.path(`error/default/${response.status}`);
-                });
-        }
+        // $scope.test = function() {
+        //     context = "test";
+        //     $http.get("https://uz-kanban-backend.herokuapp.com/users")
+        //         .then(function(response) {
+        //             if (response.status == 200) {
+        //                 $scope.users = response.data;
+        //             } else {
+        //                 console.log(response);
+        //                 $location.path(`error/default/${response.status}`);
+        //             }
+        //         }, function(response){
+        //             console.log(response);
+        //             $location.path(`error/default/${response.status}`);
+        //         });
+        // }
 
         $scope.addProject = function(data) {
             userData = angular.copy(data);
@@ -554,15 +533,8 @@ AppManager.controller(
 
 AppManager.controller(
     "ProjectController", 
-    ["$scope", "userService", "$location", "$routeParams", "$http",
-    function($scope, userService, $location, $routeParams, $http) {
-
-        if (userService.getAuthorization() === undefined) {
-            $location.path("error/ProjectController/403");
-            return;
-        }
-
-        let context = undefined;
+    ["$scope", "userService", "$location", "$routeParams", "$http", "$interval",
+    function($scope, userService, $location, $routeParams, $http, $interval) {
 
         // $scope.setDataDate = function() {
         //     let date = new Date();
@@ -593,6 +565,7 @@ AppManager.controller(
                     if (response.status == 200) {
                         delete response.data.project;
                         $scope.models.containers.push(response.data);
+                        $scope.subLock();
                     } else {
                         console.log(response);
                         $location.path(`error/${context}/${response.status}`);
@@ -609,6 +582,7 @@ AppManager.controller(
             $scope.edit.containerIndex = currentContainerIndex;
             $scope.edit.containerId = container.id;
             $scope.edit.containerName = container.name;
+            $scope.addLock();
         }
 
         $scope.addTask = function(data, edit) {
@@ -620,6 +594,7 @@ AppManager.controller(
                     if (response.status == 200) {
                         delete response.data.container;
                         $scope.models.containers[edit.containerIndex].tasks.push(response.data);
+                        $scope.subLock();
                     } else {
                         console.log(response);
                         $location.path(`error/${context}/${response.status}`);
@@ -638,6 +613,7 @@ AppManager.controller(
             $scope.insert.taskId = task.id;
             $scope.insert.position = container.tasks.indexOf(task);
             console.log("beginLength", container.tasks.length);
+            $scope.addLock();
             
             // container.tasks.forEach(function(t, i) {
             //     if (t.containerPosition >= position)
@@ -679,6 +655,7 @@ AppManager.controller(
                 if (response.status == 200) {
                     console.log("move position")
                     $scope.organizeMoveTasks(container);
+                    $scope.subLock();
                 } else {
                     console.log(response);
                     $location.path(`error/${context}/${response.status}`);
@@ -707,6 +684,7 @@ AppManager.controller(
             }
             $scope.data.done = $scope.edit.currentTask.done;
             console.log(task);
+            $scope.addLock();
         }
 
         $scope.editTask = function(data, edit) {
@@ -721,6 +699,7 @@ AppManager.controller(
                         edit.currentTask.description = userData.description;
                         edit.currentTask.done = userData.done;
                         edit.currentTask.deadlineDate = userData.deadlineDate;
+                        $scope.subLock();
                     } else {
                         console.log(response);
                         $location.path(`error/${context}/${response.status}`);
@@ -774,6 +753,7 @@ AppManager.controller(
                     console.log("Task DELETED");
                     $scope.models.containers[containerIndex].tasks.splice(taskIndex, 1);
                     $scope.organizeDeleteTasks(containerIndex, taskIndex);
+                    $scope.subLock();
                 } else {
                     console.log(response);
                     $location.path(`error/${context}/${response.status}`);
@@ -806,71 +786,120 @@ AppManager.controller(
             });
         }
 
-        $scope.edit = {};
-        $scope.insert = {};
-        $scope.data = {};
+        $scope.addLock = function () {
+            syncLocks++;
+        }
 
-        currentProject = angular.copy(userService.getCurrentProject());
-        userService.setCurrentProject(undefined);
-        let containers = currentProject.containers;
-
+        $scope.subLock = function () {
+            syncLocks--;
+        }
+        
         $scope.showTask = function(task) {
             console.log(task);
             // console.log($scope.models.containers);
         };
 
+        $scope.initContainers = function (containers) {
+            $scope.models = {containers:[]};
+            containers.sort(function(a, b){return a.projectPosition - b.projectPosition});
+            containers.forEach(function (container, i) {
+                container.tasks.sort(function(a, b){return a.containerPosition - b.containerPosition});
+                $scope.models.containers.push(container);
+            });
+        }
 
+        $scope.syncProject = function() {
+            if ( angular.isDefined(projectSync) ) return;
 
-        $scope.models = {
-            // selected: null,
-            containers: [
-                // {
-                //     name: "A",
-                //     tasks: []
-                // },
-                // {
-                //     name: "B",
-                //     tasks: []
-                // },
-                // {
-                //     name: "C",
-                //     tasks: []
-                // },
-                // {
-                //     name: "D",
-                //     tasks: []
-                // },
-                // {
-                //     name: "E",
-                //     tasks: []
-                // }
-            ]
+            projectSync = $interval(function() {
+                if (syncLocks == 0) {
+                    console.log("sync running");
+                    $scope.addLock();
+                    $scope.$broadcast("syncLoadProject");
+                }
+            }, 1500);
         };
 
-        containers.sort(function(a, b){return a.projectPosition - b.projectPosition});
-        containers.forEach(function (container, i) {
-            container.tasks.sort(function(a, b){return a.containerPosition - b.containerPosition});
-            $scope.models.containers.push(container);
-            // container.tasks.forEach(function (task, i) {
-            //     $scope.models.containers[container.id].items.push({label: task.name});
-            // });
-        });
         
-        // Generate initial model
-        // for (var i = 1; i <= 3; ++i) {
-        //     $scope.models.containers.A.tasks.push({name: "Item A" + i, containerPosition: 5});
-        //     $scope.models.containers.B.tasks.push({name: "Item B" + i, containerPosition: 5});
-        //     $scope.models.containers.C.tasks.push({name: "Item C" + i, containerPosition: 5});
-        //     $scope.models.containers.D.tasks.push({name: "Item D" + i, containerPosition: 5});
-        //     $scope.models.containers.E.tasks.push({name: "Item D" + i, containerPosition: 5});
-        // }
 
-        console.log($scope.models.containers);
+        $scope.stopSync = function() {
+            if (angular.isDefined(projectSync)) {
+                $interval.cancel(projectSync);
+                projectSync = undefined;
+            }
+        };
+
+        $scope.$on('$destroy', function() {
+            console.log("destroy");
+            $scope.stopSync();
+        });
+
+        $scope.syncLoadProject = function() {
+            $scope.subLock();
+            return $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + $routeParams.id)
+                .then(function(response) {
+                    if (response.status == 200) {
+                        if (syncLocks == 0)
+                            $scope.initContainers(response.data.containers);
+                        return response.status;
+                    } else {
+                        console.log(response);
+                        return response.status;
+                    }
+                }, function(response){
+                    console.log(response);
+                    return response.status;
+                });
+        }
+
+        $scope.$on('syncLoadProject', function () {
+            $scope.loggedIn = userService.isLoggedIn();
+            if ($scope.loggedIn) {
+                let r = $scope.syncLoadProject();
+                r.then(function(result){
+                    if (result == 200) {
+                        console.log("syncLoadProject Success", result);
+                    } else {
+                        // userService.toggleLoggedIn();
+                        // $scope.loggedIn = userService.isLoggedIn();
+                        // $location.path(`error/syncLoadProject/${result}`);
+                        console.log("syncLoadProject Error", result);
+                    }
+                });
+            }
+        });
+
+        $scope.edit = {};
+        $scope.insert = {};
+        $scope.data = {};
+        let syncLocks = 0;
+        let projectSync;
+        let context = undefined;
+
+        currentProject = angular.copy(userService.getCurrentProject());
+        userService.setCurrentProject(undefined);
+
+        angular.element(document).ready(function(){
+            $scope.syncProject();
+        });
+
+        if (userService.getAuthorization() === undefined) {
+            $location.path("error/ProjectController/403");
+            return;
+        }
+
+        if (angular.isDefined(currentProject)) {
+            let containers = currentProject.containers;
+            $scope.initContainers(containers);
+        } else {
+            $scope.syncProject();
+        }
+
+        // console.log($scope.models.containers);
         console.log($routeParams.id);
         console.log($location.path());
-        console.log(currentProject);
-
-        
+        // console.log(currentProject);
+   
 }]);
 
 AppManager.controller(
@@ -897,7 +926,7 @@ AppManager.controller(
                 "404": "The requested resource was not found",
                 "default": "We don't know what happend"
             }
-        }
+        };
 
         let context = $routeParams.context;
         let code = $routeParams.code;
@@ -978,6 +1007,7 @@ AppManager.controller(
                 if (response.status == 200) {
                     userService.setUserNotifications(response.data.notifications);
                     $scope.notifications = userService.getUserNotifications();
+                    $scope.notifications = $scope.notifications.filter(element => element.message != null);
                     return response.status;
                 } else {
                     console.log(response);
@@ -1065,6 +1095,8 @@ AppManager.controller(
                     $location.path(`error/toggleLogin/${result}`);
                 }
             });
+        } else {
+            $location.path('/');
         }
             
     });
