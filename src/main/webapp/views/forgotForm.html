@@ -1,0 +1,14 @@
+<div class="d-flex flex-column align-items-center text-center cus-min-vh-80" ng-controller="LoginRegisterController">
+    <h1>NotATrelloCopy - Password Reset</h1>
+    <form ng-if="!tokenRequestSent" name="forgotPasswordForm" ng-submit="forgotPasswordForm.$valid && getRecoveryToken(data)" method="POST">
+        <input ng-model="data.email" class="form-control" type="email" name="email" id="email" placeholder="user@domain.com" required>
+        <input type="submit" id="submit" value="Get reset token" class="btn btn-primary form-control">
+    </form>
+    <form ng-if="tokenRequestSent" name="recoveryPasswordForm" ng-submit="recoveryPasswordForm.$valid && recoverPassword(data)" method="PUT">
+        <span>Check your inbox for the recovery token</span>
+        <input ng-model="data.token" class="form-control" type="text" name="token" id="token" placeholder="Token" required>
+        <input ng-model="data.password" class="form-control" type="password" name="password" id="password" placeholder="Password" required>
+        <input ng-model="data.passwordConfirm" class="form-control" type="password" ng-keyup="checkPass(data)" name="password-confirm" id="password-confirm" placeholder="Confirm Password" required>
+        <input type="submit" id="submit" value="Change Password" class="btn btn-primary form-control" disabled>
+    </form>
+</div>
