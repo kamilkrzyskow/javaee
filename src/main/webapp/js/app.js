@@ -704,9 +704,10 @@ AppManager.controller(
                 // if (taskIndex > 0) taskIndex--;
                 // if ($scope.insert.position > 0) $scope.insert.position--;
                 
-                // if ($scope.insert.position === taskIndex) {
-                //     return;
-                // }
+                if ($scope.insert.position === taskIndex) {
+                    $scope.subLock();
+                    return;
+                }
 
             }
             console.log("position to put", $scope.insert.position)

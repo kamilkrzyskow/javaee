@@ -1,4 +1,4 @@
-<nav class="navbar fixed-top navbar-light cus-bg-white shadow-sm" ng-controller="LoginRegisterController">
+<nav class="navbar navbar-notif fixed-top navbar-light cus-bg-white shadow-sm" ng-controller="LoginRegisterController">
     <h1><a href="/">NotATrelloCopy</a></h1>
     <div class="btn-group btn-group-lg" role="group" aria-label="LoginRegister Buttons">
         <button ng-click="markAsRead()" class="popper btn btn-outline-primary" title="Notifications" data-toggle="popover">
@@ -35,9 +35,9 @@
     </div>
     <script>
         $('.popper').popover({
-            trigger: 'click',
+            trigger: 'focus',
             placement: 'bottom',
-            container: '.navbar',
+            container: '.navbar-notif',
             html: true,
             content: function () {
                 return $(this).next('.popper-content').html();
