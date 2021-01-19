@@ -1,0 +1,19 @@
+<div class="modal fade" data-backdrop="static" id="deleteProject" tabindex="-1" aria-labelledby="deleteProjectLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteProjectLabel">Delete Project - {{edit.name}}</h5>
+                <button type="button" class="close" ng-click="clearModal()" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this project? You can't reverse this action. All members will lose access to it too.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" ng-click="clearModal()" data-dismiss="modal">Close</button>
+                <button type="button" ng-click="deleteProject(edit)" class="btn btn-danger" data-dismiss="modal">Delete Project</button>
+            </div>
+        </div>
+    </div>
+</div>

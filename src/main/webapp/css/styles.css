@@ -104,6 +104,7 @@ input{
     display: block;
     padding: 10px 15px;
     margin-bottom: -1px;
+    position: relative;
 }
 
 /**

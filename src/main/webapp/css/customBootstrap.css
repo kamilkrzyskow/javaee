@@ -16,8 +16,7 @@
 }
 
 .popover {
-    min-width: 500px;
-    max-width: 500px;
+    max-width: 1000px;
 }
 
 .popover-body {
@@ -46,6 +45,29 @@
     position: absolute;
     top: 0px;
     right: -4px;
+}
+
+.task-buttons {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+}
+
+.container-buttons {
+    position: absolute;
+    top: 1px;
+    right: 5px;
+}
+
+.cus-head-panel {
+    padding-bottom: 10px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  position: relative;
 }
 
 .cus-color-green {

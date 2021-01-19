@@ -1,21 +1,21 @@
-<div class="modal fade" data-backdrop="static" id="addContainer" tabindex="-1" aria-labelledby="addContainerLabel" aria-hidden="true">
+<div class="modal fade" data-backdrop="static" id="addProject" tabindex="-1" aria-labelledby="addProjectLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addContainerLabel">Add Container</h5>
-                <button type="button" class="close" ng-click="clearModal(); subLock()" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title" id="addProjectLabel">Add Project</h5>
+                <button type="button" class="close" ng-click="clearModal()" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form name="addContainerForm">
+                <form name="addProjectForm">
                     <!-- <div class="form-group">
                         <label for="project-id" class="col-form-label">Project ID:</label>
                         <input ng-model="data.id" type="text" class="form-control" id="project-id" required>
                     </div> -->
                     <div class="form-group">
-                        <label for="addContainer-name" class="col-form-label">Container Name:</label>
-                        <input ng-model="data.name" type="text" class="form-control" id="addContainer-name" required>
+                        <label for="addProject-name" class="col-form-label">Project Name:</label>
+                        <input ng-model="data.name" type="text" class="form-control" id="addProject-name" required>
                     </div>
                     <!-- <div class="form-group">
                         <label for="project-desc" class="col-form-label">Project Description:</label>
@@ -24,8 +24,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" ng-click="clearModal(); subLock()" data-dismiss="modal">Close</button>
-                <button ng-click="addContainerForm.$valid && addContainer(data)" type="button" data-dismiss="modal" class="btn btn-primary">Create Container</button>
+                <button type="button" class="btn btn-secondary" ng-click="clearModal()" data-dismiss="modal">Close</button>
+                <button ng-click="addProjectForm.$valid && addProject(data)" type="button" data-dismiss="modal" class="btn btn-primary">Create Project</button>
             </div>
         </div>
     </div>
