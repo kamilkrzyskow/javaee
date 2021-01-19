@@ -49,9 +49,25 @@
 
 .task-buttons {
     position: absolute;
-    width: 5em;
     bottom: 5px;
-    right: 1px;
+    right: 5px;
+}
+
+.container-buttons {
+    position: absolute;
+    top: 1px;
+    right: 5px;
+}
+
+.cus-head-panel {
+    padding-bottom: 10px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  position: relative;
 }
 
 .cus-color-green {

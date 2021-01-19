@@ -853,6 +853,33 @@ AppManager.controller(
             });
         }
 
+        $scope.loadMembers = function() {
+            $scope.currentProject = currentProject;
+            console.log("works");
+        }
+
+        $scope.toggleTaskDone = function(task) {
+            userData = {};
+            userData.name = task.name;
+            userData.description = task.description;
+            userData.done = !task.done;
+            context = "editTask";
+            $scope.setDateTime(userData);
+            $http.put("https://uz-kanban-backend.herokuapp.com/tasks/" + task.id, JSON.stringify(userData))
+                .then(function(response) {
+                    if (response.status == 200) {
+                        task.done = !task.done;
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+            $scope.clearModal();
+        }
+
         $scope.addLock = function () {
             syncLocks++;
         }
@@ -906,8 +933,10 @@ AppManager.controller(
             return $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + $routeParams.id)
                 .then(function(response) {
                     if (response.status == 200) {
-                        if (syncLocks == 0)
+                        if (syncLocks == 0) {
                             $scope.initContainers(response.data.containers);
+                            currentProject = angular.copy(response.data);
+                        }
                         return response.status;
                     } else {
                         console.log(response);
@@ -939,6 +968,7 @@ AppManager.controller(
             $scope.data = {};
             $scope.edit = {};
             $scope.insert = {};
+            $scope.currentProject = {};
         }
 
         if (userService.getAuthorization() === undefined) {
