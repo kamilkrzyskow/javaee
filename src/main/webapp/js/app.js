@@ -932,6 +932,7 @@ AppManager.controller(
         $scope.syncLoadProject = function() {
             return $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + $routeParams.id)
                 .then(function(response) {
+                    $scope.subLock();
                     if (response.status == 200) {
                         if (syncLocks == 0) {
                             $scope.initContainers(response.data.containers);
@@ -943,6 +944,7 @@ AppManager.controller(
                         return response.status;
                     }
                 }, function(response){
+                    $scope.subLock();
                     console.log(response);
                     return response.status;
                 });
@@ -959,8 +961,6 @@ AppManager.controller(
                     // $location.path(`error/syncLoadProject/${result}`);
                     console.log("syncLoadProject Error", result);
                 }
-            }).finally(function () {
-                $scope.subLock();
             });
         });
 
