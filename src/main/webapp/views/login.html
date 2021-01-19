@@ -4,6 +4,10 @@
         <input ng-model="data.email" class="form-control" type="text" name="email" id="email" placeholder="Email" required>
         <input ng-model="data.password" class="form-control" type="password" name="pass" id="password" placeholder="Password" required>
         <input type="submit" id="submit" value="Login" class="btn btn-primary form-control">
+        <div class="custom-control custom-checkbox">
+            <input ng-model="data.rememberUser" type="checkbox" class="custom-control-input" id="check-cookie">
+            <label class="custom-control-label" for="check-cookie">Remember me. Selecting it you accept the <a href="cookies">usage of cookies</a></label>
+        </div>
         <a href="forgot-pass" class="p-2">Forgot your password?</a>
     </form>   
 </div>  
