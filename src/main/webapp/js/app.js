@@ -238,6 +238,7 @@ AppManager.config(["$httpProvider", function($httpProvider) {
                 // console.log(rejection);
                 if (rejection.status == 403) {
                     userService.clearUser();
+                    userService.clearCookies();
                     userService.toggleLoggedIn();
                     $rootScope.$broadcast("toggleLoggedIn");
                 }
