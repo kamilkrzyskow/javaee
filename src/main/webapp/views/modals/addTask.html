@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addTaskLabel">Add Task to {{edit.containerName}}</h5>
-                <button type="button" class="close" ng-click="edit = {}; data = {}; subLock()" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" ng-click="clearModal(); subLock()" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -40,7 +40,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" ng-click="edit = {}; data = {}; subLock()" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" ng-click="clearModal(); subLock()" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button ng-click="addTaskForm.$valid && addTask(data, edit)" type="button" data-dismiss="modal" class="btn btn-primary">Create Task</button>
             </div>
         </div>

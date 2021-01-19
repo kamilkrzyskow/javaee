@@ -94,6 +94,9 @@ AppManager.config(["$routeProvider", function($routeProvider) {
         .when("/home", {
             templateUrl: "views/home.html"
         })
+        .when("/tos", {
+            templateUrl: "views/tos.html"
+        })
         .when("/error/:context/:code", {
             templateUrl: "views/error.html",
             controller: 'errorController'
@@ -328,17 +331,6 @@ AppManager.controller(
     "DashboardController", 
     ["$scope", "$http", "$location", "userService",
     function($scope, $http, $location, userService) {
-
-        if (userService.getAuthorization() === undefined) {
-            $location.path("error/DashboardController/403");
-            return;
-        }
-
-        let context = undefined;
-        let userData = undefined;
-        $scope.users = {};
-        $scope.edit = {};
-        $scope.currentProject = {};
         
         // let projects = [
         //     {
@@ -357,9 +349,7 @@ AppManager.controller(
         //     }
         // ]
         // userService.setUserProjects(projects);
-        $scope.prr = userService.getUserProjects();
-        console.log(userService.getUser());
-        console.log($scope.prr);
+        
         
         // $scope.test = function() {
         //     context = "test";
@@ -458,6 +448,7 @@ AppManager.controller(
         }
 
         $scope.beginEdit = function(project) {
+            $scope.loadMembers(project.project.id)
             let currentProjectIndex = $scope.prr.indexOf(project);
             $scope.edit.index = currentProjectIndex;
             $scope.edit.id = project.project.id;
@@ -528,6 +519,28 @@ AppManager.controller(
             
             $scope.edit = {};
         }
+
+        $scope.clearModal = function () {
+            console.log("clearModal");
+            $scope.data = {};
+            $scope.edit = {};
+            $scope.currentProject = {};
+        }
+
+        if (userService.getAuthorization() === undefined) {
+            $location.path("error/DashboardController/403");
+            return;
+        }
+
+        let context = undefined;
+        let userData = undefined;
+        $scope.users = {};
+        $scope.edit = {};
+        $scope.currentProject = {};
+
+        $scope.prr = userService.getUserProjects();
+        console.log(userService.getUser());
+        console.log($scope.prr);
         
 }]);
 
@@ -574,6 +587,60 @@ AppManager.controller(
                     console.log(response);
                     $location.path(`error/${context}/${response.status}`);
                 });
+            $scope.data = {};
+        }
+
+        $scope.beginEditContainer = function(container) {
+            $scope.edit.currentContainer = container;
+            $scope.edit.name = container.name;
+            $scope.data.name = container.name;
+            $scope.addLock();
+        }
+
+        $scope.editContainer = function(data, edit) {
+            userData = angular.copy(data);
+            context = "editContainer";
+            $http.put("https://uz-kanban-backend.herokuapp.com/containers/" + edit.currentContainer.id, null, {
+                params: {
+                    "name": userData.name
+                }
+            })
+                .then(function(response) {
+                    if (response.status == 200) {
+                        edit.currentContainer.name = userData.name;
+                        $scope.subLock();
+                    } else {
+                        console.log(response);
+                        $location.path(`error/${context}/${response.status}`);
+                    }
+                }, function(response){
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                });
+
+            $scope.data = {};
+            $scope.edit = {};
+        }
+
+        $scope.deleteContainer = function(edit) {
+            let containerIndex = $scope.models.containers.indexOf(edit.currentContainer);
+            context = "deleteContainer";
+            $http.delete("https://uz-kanban-backend.herokuapp.com/containers/" + edit.currentContainer.id)
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Container DELETED");
+                    $scope.models.containers.splice(containerIndex, 1);
+                    $scope.subLock();
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+            
+            $scope.edit = {};
             $scope.data = {};
         }
 
@@ -673,16 +740,17 @@ AppManager.controller(
         $scope.beginEditTask = function(task, container) {
             $scope.edit.currentTask = task;
             $scope.edit.currentContainer = container;
+            $scope.edit.name = task.name;
             
-            $scope.data.name = $scope.edit.currentTask.name;
-            $scope.data.description = $scope.edit.currentTask.description;
+            $scope.data.name = task.name;
+            $scope.data.description = task.description;
 
-            if ($scope.edit.currentTask.deadlineDate !== null) {
-                let datetime = $scope.edit.currentTask.deadlineDate.split(".")[0];
+            if (task.deadlineDate !== null) {
+                let datetime = task.deadlineDate.split(".")[0];
                 $scope.data.deadlineDate = new Date(datetime);
                 $scope.data.deadlineTime = new Date(datetime);
             }
-            $scope.data.done = $scope.edit.currentTask.done;
+            $scope.data.done = task.done;
             console.log(task);
             $scope.addLock();
         }
@@ -694,7 +762,6 @@ AppManager.controller(
             $http.put("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.currentTask.id, JSON.stringify(userData))
                 .then(function(response) {
                     if (response.status == 200) {
-                        console.log(edit);
                         edit.currentTask.name = userData.name;
                         edit.currentTask.description = userData.description;
                         edit.currentTask.done = userData.done;
@@ -712,6 +779,31 @@ AppManager.controller(
 
             $scope.data = {};
             $scope.edit = {};
+        }
+
+        $scope.deleteTask = function(edit) {
+            let containerIndex = $scope.models.containers.indexOf(edit.currentContainer);
+            console.log(containerIndex);
+            let taskIndex = $scope.models.containers[containerIndex].tasks.indexOf(edit.currentTask);
+            context = "deleteTask";
+            $http.delete("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.currentTask.id)
+            .then(function(response) {
+                if (response.status == 204) {
+                    console.log("Task DELETED");
+                    $scope.models.containers[containerIndex].tasks.splice(taskIndex, 1);
+                    $scope.organizeDeleteTasks(containerIndex, taskIndex);
+                    $scope.subLock();
+                } else {
+                    console.log(response);
+                    $location.path(`error/${context}/${response.status}`);
+                }
+            }, function(response){
+                console.log(response);
+                $location.path(`error/${context}/${response.status}`);
+            });
+            
+            $scope.edit = {};
+            $scope.data = {};
         }
 
         $scope.setDateTime = function(userData) {
@@ -740,31 +832,6 @@ AppManager.controller(
             }
             if (userData.deadlineTime) delete userData.deadlineTime;
             
-        }
-
-        $scope.deleteTask = function(edit) {
-            let containerIndex = $scope.models.containers.indexOf(edit.currentContainer);
-            console.log(containerIndex);
-            let taskIndex = $scope.models.containers[containerIndex].tasks.indexOf(edit.currentTask);
-            context = "deleteTask";
-            $http.delete("https://uz-kanban-backend.herokuapp.com/tasks/" + edit.currentTask.id)
-            .then(function(response) {
-                if (response.status == 204) {
-                    console.log("Task DELETED");
-                    $scope.models.containers[containerIndex].tasks.splice(taskIndex, 1);
-                    $scope.organizeDeleteTasks(containerIndex, taskIndex);
-                    $scope.subLock();
-                } else {
-                    console.log(response);
-                    $location.path(`error/${context}/${response.status}`);
-                }
-            }, function(response){
-                console.log(response);
-                $location.path(`error/${context}/${response.status}`);
-            });
-            
-            $scope.edit = {};
-            $scope.data = {};
         }
 
         $scope.organizeMoveTasks = function(container) {
@@ -800,27 +867,28 @@ AppManager.controller(
         };
 
         $scope.initContainers = function (containers) {
-            $scope.models = {containers:[]};
+            let models = {containers:[]};
             containers.sort(function(a, b){return a.projectPosition - b.projectPosition});
             containers.forEach(function (container, i) {
                 container.tasks.sort(function(a, b){return a.containerPosition - b.containerPosition});
-                $scope.models.containers.push(container);
+                models.containers.push(container);
             });
+            $scope.models = models;
         }
 
         $scope.syncProject = function() {
             if ( angular.isDefined(projectSync) ) return;
 
             projectSync = $interval(function() {
+                if (syncLocks < 0)
+                    syncLocks = 0;
                 if (syncLocks == 0) {
                     console.log("sync running");
                     $scope.addLock();
                     $scope.$broadcast("syncLoadProject");
                 }
-            }, 1500);
+            }, 1000);
         };
-
-        
 
         $scope.stopSync = function() {
             if (angular.isDefined(projectSync)) {
@@ -835,7 +903,6 @@ AppManager.controller(
         });
 
         $scope.syncLoadProject = function() {
-            $scope.subLock();
             return $http.get("https://uz-kanban-backend.herokuapp.com/projects/" + $routeParams.id)
                 .then(function(response) {
                     if (response.status == 200) {
@@ -853,47 +920,55 @@ AppManager.controller(
         }
 
         $scope.$on('syncLoadProject', function () {
-            $scope.loggedIn = userService.isLoggedIn();
-            if ($scope.loggedIn) {
-                let r = $scope.syncLoadProject();
-                r.then(function(result){
-                    if (result == 200) {
-                        console.log("syncLoadProject Success", result);
-                    } else {
-                        // userService.toggleLoggedIn();
-                        // $scope.loggedIn = userService.isLoggedIn();
-                        // $location.path(`error/syncLoadProject/${result}`);
-                        console.log("syncLoadProject Error", result);
-                    }
-                });
-            }
+            let r = $scope.syncLoadProject();
+            r.then(function(result){
+                if (result == 200) {
+                    console.log("syncLoadProject Success", result);
+                } else {
+                    // userService.toggleLoggedIn();
+                    // $scope.loggedIn = userService.isLoggedIn();
+                    // $location.path(`error/syncLoadProject/${result}`);
+                    console.log("syncLoadProject Error", result);
+                }
+            }).finally(function () {
+                $scope.subLock();
+            });
         });
 
-        $scope.edit = {};
-        $scope.insert = {};
-        $scope.data = {};
-        let syncLocks = 0;
-        let projectSync;
-        let context = undefined;
-
-        currentProject = angular.copy(userService.getCurrentProject());
-        userService.setCurrentProject(undefined);
-
-        angular.element(document).ready(function(){
-            $scope.syncProject();
-        });
+        $scope.clearModal = function () {
+            $scope.data = {};
+            $scope.edit = {};
+            $scope.insert = {};
+        }
 
         if (userService.getAuthorization() === undefined) {
             $location.path("error/ProjectController/403");
             return;
         }
 
+        $scope.edit = {};
+        $scope.insert = {};
+        $scope.data = {};
+        let syncLocks = 0;
+        var projectSync = undefined;
+        let context = undefined;
+        let currentRole;
+        let currentProject;
+
+        currentProject = angular.copy(userService.getCurrentProject());
+        userService.setCurrentProject(undefined);
+
         if (angular.isDefined(currentProject)) {
             let containers = currentProject.containers;
             $scope.initContainers(containers);
-        } else {
+        } 
+        else {
             $scope.syncProject();
         }
+
+        angular.element(document).ready(function(){
+            $scope.syncProject();
+        });
 
         // console.log($scope.models.containers);
         console.log($routeParams.id);
@@ -919,11 +994,15 @@ AppManager.controller(
             "route": {
                 "404": "This page does not exist"
             },
+            "addMember": {
+                "400": "Member with provided email already exists in this project"
+            },
             "default": {
-                "403": "You are unauthorized to do this action",
+                "403": "You are unauthorized to do this action or/and you got logged out",
                 "-1": "A connection with the backend server could not be established",
                 "500": "The backend server could not process your request",
                 "404": "The requested resource was not found",
+                "400": "Wrong request data",
                 "default": "We don't know what happend"
             }
         };
@@ -954,8 +1033,7 @@ AppManager.controller(
     $scope.userEmail = "@";
     $scope.notifications = userService.getUserNotifications();
     let context = undefined;
-
-    let notificationInterval;
+    var notificationInterval = undefined;
     $scope.updateNotifications = function() {
         if ( angular.isDefined(notificationInterval) ) return;
 
@@ -979,7 +1057,7 @@ AppManager.controller(
     };
 
     $scope.$on('$destroy', function() {
-        console.log("destroy");
+        console.log("destroyNotifs");
         $scope.stopNotifications();
     });
 
