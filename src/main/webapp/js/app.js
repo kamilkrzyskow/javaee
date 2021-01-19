@@ -704,9 +704,9 @@ AppManager.controller(
                 // if (taskIndex > 0) taskIndex--;
                 // if ($scope.insert.position > 0) $scope.insert.position--;
                 
-                if ($scope.insert.position === taskIndex) {
-                    return;
-                }
+                // if ($scope.insert.position === taskIndex) {
+                //     return;
+                // }
 
             }
             console.log("position to put", $scope.insert.position)
@@ -885,7 +885,12 @@ AppManager.controller(
         }
 
         $scope.subLock = function () {
+            console.log("syncLocks: ", syncLocks);
             syncLocks--;
+        }
+
+        $scope.dragCancel = function() {
+            console.log("dragCanceled: ", syncLocks);
         }
         
         $scope.showTask = function(task) {

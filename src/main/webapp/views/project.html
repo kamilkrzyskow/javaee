@@ -55,6 +55,7 @@
                                 dnd-draggable="task"
                                 dnd-dragstart="addLock()"
                                 dnd-dragend="subLock()"
+                                dnd-canceled="dragCancel()"
                                 dnd-moved="container.tasks.splice($index, 1) && moveTask(container, $index)"
                                 dnd-effect-allowed="move"
                                 >
@@ -63,7 +64,7 @@
                                     ng-class="{'selected': models.selected === task}"
                                 dnd-dragend="container.tasks.push({name: 'Item A' + i, containerPosition: 5})"
                                 -->
-                                {{task.name}}
+                                {{task.name.slice(0, 15).trim()}}...
                                 <div class="task-buttons">
                                     <button ng-if="task.done" class="btn btn-outline-primary" type="button" ng-click="toggleTaskDone(task)">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-check-square" viewBox="0 0 16 16">
